@@ -26,13 +26,13 @@ Displays the upcoming prayer, a live countdown, and a clickable prayer schedule.
 
 ## Screenshots
 ### Windows/System Defaul | Traditional Islamic
-![Windows](https://raw.githubusercontent.com/hheitlager/emberveil-mawaqit/main/screenshots/Mawaqit-Windows-System-Default.png) ![Traditional](https://raw.githubusercontent.com/hheitlager/emberveil-mawaqit/main/screenshots/Mawaqit-Traditional-Islamic.png)
+![Windows](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/Mawaqit-Windows-System-Default.png) ![Traditional](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/Mawaqit-Traditional-Islamic.png)
 
 ### Catppucchin Mocha | Emberveil
-![Catppucchin Mocha](https://raw.githubusercontent.com/hheitlager/emberveil-mawaqit/main/screenshots/Mawaqit-Catppucchin-Moca.png) ![Emberveil](https://raw.githubusercontent.com/hheitlager/emberveil-mawaqit/main/screenshots/Mawaqit-Emberveil.png)
+![Catppucchin Mocha](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/Mawaqit-Catppucchin-Moca.png) ![Emberveil](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/Mawaqit-Emberveil.png)
 
 ### My fully custom desktop preview
-![Desktop](https://raw.githubusercontent.com/hheitlager/emberveil-mawaqit/main/screenshots/My-Desktop.png)
+![Desktop](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/My-Desktop.png)
 
 ## Configuration
 Choose a mosque identifier or Mawaqit URL in Settings.
@@ -44,7 +44,7 @@ Custom color settings only apply when the Custom theme is selected.
 For installation instructions, additional screenshots,
 troubleshooting, and release information, visit:
 
-[GitHub Project](https://github.com/hheitlager/emberveil-mawaqit)
+[GitHub Project](https://github.com/hheitlager/windhawk-mawaqit)
 
 ## License
 MIT License.
