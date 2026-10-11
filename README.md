@@ -19,13 +19,20 @@ Displays the upcoming prayer and a live countdown in a taskbar pill, with a clic
 
 ## Screenshots
 
-Screenshots of the taskbar widget, popup, and settings will be added here.
+Mawaqit Prayer Clock supports multiple appearance themes to match your Windows 11 desktop.
 
-<!-- Add screenshots/taskbar.png, screenshots/popup.png, and screenshots/settings.png, then uncomment:
-![Taskbar widget](screenshots/taskbar.png)
-![Prayer schedule popup](screenshots/popup.png)
-![Settings](screenshots/settings.png)
--->
+| Traditional Islamic | Windows System Default |
+|:---:|:---:|
+| ![Traditional](screenshots/Mawaqit-Traditional-Islamic.png) | ![Windows](screenshots/Mawaqit-Windows-System-Default.png) |
+
+| Catppucchin Mocha | Emberveil |
+|:---:|:---:|
+| ![Catppucchin](screenshots/Mawaqit-Catppucchin-Moca.png) | ![Emberveil](screenshots/Mawaqit-Emberveil.png) |
+
+Desktop Integration
+
+See how Mawaqit Prayer Clock integrates into a fully customized Windows 11 desktop.
+![Desktop](screenshots/My-Desktop.png)
 
 ## Requirements
 
