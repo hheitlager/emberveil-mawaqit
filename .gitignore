@@ -1,0 +1,13 @@
+# Build artifacts
+*.exe
+*.dll
+*.obj
+*.o
+*.pdb
+*.log
+
+# Local editor files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
