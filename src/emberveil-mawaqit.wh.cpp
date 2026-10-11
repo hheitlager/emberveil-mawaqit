@@ -2,8 +2,8 @@
 // @id emberveil-mawaqit-live
 // @name Mawaqit Prayer Clock
 // @description Live Mawaqit prayer times and countdown for the Windows taskbar
-// @version 0.6.2
-// @author HHeitlager
+// @version 0.6.2.7
+// @author Sensei
 // @github https://github.com/hheitlager
 // @include explorer.exe
 // @architecture x86-64
@@ -12,16 +12,52 @@
 
 // ==WindhawkModReadme==
 /*
-Taskbar-child widget anchored beside the system tray. Does not reserve layout space.
-The widget follows the left edge of TrayNotifyWnd, hiding if the tray cannot
-be found. Built-in WinHTTP background updater; no PowerShell required.
-*/
+# Mawaqit Prayer Clock
+An unofficial, customizable Mawaqit prayer clock for the Windows 11 taskbar.
+Displays the upcoming prayer, a live countdown, and a clickable prayer schedule.
 
+## Features
+- Five appearance themes
+- Customizable pill and popup colors
+- Prayer label, countdown, and popup visibility controls
+- Adjustable taskbar positioning and dimensions
+- Automatic prayer schedule updates
+- Live settings updates without restarting Explorer
+
+## Screenshots
+### Windows/System Defaul | Traditional Islamic
+![Windows](https://raw.githubusercontent.com/hheitlager/emberveil-mawaqit/main/screenshots/Mawaqit-Windows-System-Default.png) ![Traditional](https://raw.githubusercontent.com/hheitlager/emberveil-mawaqit/main/screenshots/Mawaqit-Traditional-Islamic.png)
+
+### Catppucchin Mocha | Emberveil
+![Catppucchin Mocha](https://raw.githubusercontent.com/hheitlager/emberveil-mawaqit/main/screenshots/Mawaqit-Catppucchin-Moca.png) ![Emberveil](https://raw.githubusercontent.com/hheitlager/emberveil-mawaqit/main/screenshots/Mawaqit-Emberveil.png)
+
+### My fully custom desktop preview
+![Desktop](https://raw.githubusercontent.com/hheitlager/emberveil-mawaqit/main/screenshots/My-Desktop.png)
+
+## Configuration
+Choose a mosque identifier or Mawaqit URL in Settings.
+Select an appearance theme and customize the widget as desired.
+
+Custom color settings only apply when the Custom theme is selected.
+
+## More information
+For installation instructions, additional screenshots,
+troubleshooting, and release information, visit:
+
+[GitHub Project](https://github.com/hheitlager/emberveil-mawaqit)
+
+## License
+MIT License.
+
+## Disclaimer
+This is an unofficial community project and is not affiliated
+with or endorsed by Mawaqit.
+*/
 // ==/WindhawkModReadme==
 
 // ==WindhawkModSettings==
 /*
-- Mosque: al-haram-makkah-saudi-arabia
+- Mosque: masjidomar
   $name: Mawaqit - Mosque ID or URL
   $description: "Mosque identifier or full Mawaqit URL (e.g. https://mawaqit.net/en/al-haram-makkah-saudi-arabia)."
 - RefreshHours: 24
@@ -210,7 +246,7 @@ static HANDLE g_updaterThread=nullptr, g_stopEvent=nullptr, g_settingsEvent=null
 
 static SRWLOCK g_updaterLock = SRWLOCK_INIT;
 
-static std::wstring g_mosque=L"al-haram-makkah-saudi-arabia";
+static std::wstring g_mosque=L"masjidomar";
 
 static int g_refreshHours=24;
 
@@ -222,7 +258,7 @@ struct SettingsSnapshot {
  int width=220, x=0, y=0, trayGap=8;
  int pillHeight=26, cornerRadius=13, pillPadding=12;
  int refreshHours=24;
- std::wstring mosque=L"al-haram-makkah-saudi-arabia";
+ std::wstring mosque=L"masjidomar";
  std::wstring theme=L"emberveil";
  bool showNextPrayer=true, showCountdown=true, enablePopup=true;
 };
