@@ -3,7 +3,7 @@
 // @name Mawaqit Prayer Clock
 // @description Live Mawaqit prayer times and countdown for the Windows taskbar
 // @version 0.6.2
-// @author Sensei
+// @author HHeitlager
 // @github https://github.com/hheitlager
 // @include explorer.exe
 // @architecture x86-64
