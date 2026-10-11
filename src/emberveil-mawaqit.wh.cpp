@@ -1,7 +1,7 @@
 // ==WindhawkMod==
 // @id emberveil-mawaqit-live
 // @name Mawaqit Prayer Clock
-// @description Live Mawaqit prayer times and countdown for the Windows taskbar
+// @description Mawaqit prayer clock for the Windows 11 taskbar. Displays the upcoming prayer, a live countdown, and a clickable prayer schedule.
 // @version 0.6.2.7
 // @author Sensei
 // @github https://github.com/hheitlager
