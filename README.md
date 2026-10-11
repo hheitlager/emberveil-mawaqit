@@ -69,7 +69,7 @@ Settings appear in this order:
 
 Custom color settings only affect the widget when **Custom** is selected. All three Display switches default to enabled.
 
-For a mosque, enter a slug such as `masjidomar` or a URL such as `https://mawaqit.net/nl/masjidomar`. The source defaults to `masjidomar`; change it to your own mosque.
+For a mosque, enter a slug such as `al-haram-makkah-saudi-arabia` or a URL such as `https://mawaqit.net/en/al-haram-makkah-saudi-arabia`. The source defaults to `al-haram-makkah-saudi-arabia`; change it to your own mosque.
 
 ## How schedule updates work
 

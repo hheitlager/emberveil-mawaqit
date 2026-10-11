@@ -21,9 +21,9 @@ be found. Built-in WinHTTP background updater; no PowerShell required.
 
 // ==WindhawkModSettings==
 /*
-- Mosque: masjidomar
+- Mosque: al-haram-makkah-saudi-arabia
   $name: Mawaqit - Mosque ID or URL
-  $description: "Mosque identifier or full Mawaqit URL (e.g. https://mawaqit.net/nl/masjidomar)."
+  $description: "Mosque identifier or full Mawaqit URL (e.g. https://mawaqit.net/en/al-haram-makkah-saudi-arabia)."
 - RefreshHours: 24
   $name: Mawaqit - Refresh interval (hours)
   $description: "How often to refresh the prayer schedule. Failed updates retry after one hour."
@@ -210,7 +210,7 @@ static HANDLE g_updaterThread=nullptr, g_stopEvent=nullptr, g_settingsEvent=null
 
 static SRWLOCK g_updaterLock = SRWLOCK_INIT;
 
-static std::wstring g_mosque=L"masjidomar";
+static std::wstring g_mosque=L"al-haram-makkah-saudi-arabia";
 
 static int g_refreshHours=24;
 
@@ -222,7 +222,7 @@ struct SettingsSnapshot {
  int width=220, x=0, y=0, trayGap=8;
  int pillHeight=26, cornerRadius=13, pillPadding=12;
  int refreshHours=24;
- std::wstring mosque=L"masjidomar";
+ std::wstring mosque=L"al-haram-makkah-saudi-arabia";
  std::wstring theme=L"emberveil";
  bool showNextPrayer=true, showCountdown=true, enablePopup=true;
 };
