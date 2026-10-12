@@ -31,5 +31,3 @@ Install Windhawk, create a new mod, paste `src/windhawk-mawaqit.wh.cpp`, compile
 - Tested in the author's environment; compatibility across Windows builds is not yet established.
 - Unofficial project, not affiliated with Mawaqit.
 - Requires access to Mawaqit's website; upstream page changes can affect schedule retrieval.
-
-**Before publishing:** Confirm the license (the source currently says MIT, while repository license status has not been verified), add a matching `LICENSE` file, check upstream terms, and verify the final build. Screenshots are already referenced in the README; confirm the image files are present.
