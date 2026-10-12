@@ -12,44 +12,50 @@
 
 // ==WindhawkModReadme==
 /*
-**# Mawaqit Prayer Clock**
-An unofficial, customizable Mawaqit prayer clock for your taskbar using Windhawk.
+# Mawaqit Prayer Clock
+Mawaqit prayer clock for your taskbar using Windhawk. Displays the upcoming prayer, a live countdown, and a clickable prayer schedule.
 
-Displays the upcoming prayer, a live countdown, and a clickable prayer schedule.
 
-**## Features**
-- Five appearance themes
-- Customizable pill and popup colors
-- Prayer label, countdown, and popup visibility controls
-- Adjustable taskbar positioning and dimensions
-- Automatic prayer schedule updates
+## Features
+- Upcoming prayer name, scheduled time, and live countdown
+- Clickable prayer-schedule popup
+- Five appearance themes: **Emberveil**, **Windows / System**, **Traditional Islamic**, **Catppucchin Mocha**, and **Custom**
+- Independent custom colors for the pill and popup
+- Visibility switches for the prayer label, countdown, and popup
+- Adjustable widget dimensions, positioning, tray gap, and corner radius
+- Background schedule updates through native WinHTTP, with configurable refresh interval
 - Live settings updates without restarting Explorer
 
-**## Screenshots**
-**### Windows/System Defaul | Traditional Islamic**
-![Windows](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/Mawaqit-Windows-System-Default.png) ![Traditional](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/Mawaqit-Traditional-Islamic.png)
+## Screenshots
+Mawaqit Prayer Clock supports multiple appearance themes to match your Windows 11 desktop.
 
-**### Catppucchin Mocha | Emberveil**
-![Catppucchin Mocha](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/Mawaqit-Catppucchin-Moca.png) ![Emberveil](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/Mawaqit-Emberveil.png)
+Windows System Default | Traditional Islamic |
+|:---:|:---:|
+![Windows](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/Mawaqit-Windows-System-Default.png) | ![Traditional](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/Mawaqit-Traditional-Islamic.png) |
 
-**### My fully custom desktop preview**
+| Catppucchin Mocha | Emberveil |
+|:---:|:---:|
+| ![Catppucchin](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/Mawaqit-Catppucchin-Moca.png) | ![Emberveil](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/Mawaqit-Emberveil.png) |
+
+## Desktop Integration
+See how Mawaqit Prayer Clock integrates into a fully customized Windows 11 desktop.
 ![Desktop](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/My-Desktop.png)
 
-**## Configuration**
+## Configuration
 Choose a mosque identifier or Mawaqit URL in Settings.
 Select an appearance theme and customize the widget as desired.
 Custom color settings only apply when the Custom theme is selected.
 
-**## More information**
+## More information
 For installation instructions, additional screenshots,
 troubleshooting, and release information, visit:
 
 [GitHub Project](https://github.com/hheitlager/windhawk-mawaqit)
 
-**## License**
+## License
 MIT License.
 
-**## Disclaimer**
+## Disclaimer
 This is an unofficial community project and is not affiliated
 with or endorsed by Mawaqit.
 */
