@@ -44,7 +44,7 @@ The mod targets the 64-bit Windows Explorer process (`explorer.exe`). Other conf
 ## Installation
 1. Install and launch Windhawk.
 2. Create a new mod in Windhawk's mod editor.
-3. Copy the contents of [`src/emberveil-mawaqit.wh.cpp`](src/emberveil-mawaqit.wh.cpp) into the editor.
+3. Copy the contents of [`src/emberveil-mawaqit.wh.cpp`](src/windhawk-mawaqit.wh.cpp) into the editor.
 4. Compile and enable the mod in Windhawk.
 5. Open the mod's settings and set your mosque identifier or Mawaqit URL.
 
