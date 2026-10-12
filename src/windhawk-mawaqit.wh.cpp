@@ -2,7 +2,7 @@
 // @id windhawk-mawaqit
 // @name Mawaqit Prayer Clock
 // @description Mawaqit prayer clock for your taskbar using Windhawk. Displays the upcoming prayer, a live countdown, and a clickable prayer schedule.
-// @version 0.6.5.1
+// @version 0.6.6
 // @author HHeitlager
 // @github https://github.com/hheitlager
 // @include explorer.exe
@@ -22,7 +22,7 @@ Mawaqit prayer clock for your taskbar using Windhawk. Displays the upcoming pray
 - Five appearance themes: **Emberveil**, **Windows / System**, **Traditional Islamic**, **Catppucchin Mocha**, and **Custom**
 - Independent custom colors for the pill and popup
 - Visibility switches for the prayer label, countdown, and popup
-- Adjustable widget dimensions, positioning, tray gap, and corner radius
+- Automatic or manual clock height, four-sided margins and padding, tray gap, and corner radius
 - Background schedule updates through native WinHTTP, with configurable refresh interval
 - Live settings updates without restarting Explorer
 
@@ -96,21 +96,26 @@ with or endorsed by Mawaqit.
       #! $showIf: {AdvancedOptions: true}
     - LayoutSettings:
         - Width: 220
-          $name: Widget width (px)
-        - OffsetX: 0
-          $name: Horizontal offset (px)
-        - OffsetY: 0
-          $name: Vertical offset (px)
+          $name: Width
+          $description: "Width of the taskbar clock in pixels (180–400)."
+        - PillHeight: 0
+          $name: Height
+          $description: "Height in pixels. Set to 0 to automatically follow the taskbar size; values from 1 to 100 override the automatic height, up to the taskbar height."
+        - Margins: "0, 0, 0, 0"
+          $name: Margin (left, top, right, bottom)
+          $description: "Move the clock relative to its automatic position, in pixels. Positive left moves right; positive top moves down. Right and bottom move in the opposite directions. Negative values are supported (−100 to 100)."
+        - Padding: "0, 0, 0, 0"
+          $name: Padding (left, top, right, bottom)
+          $description: "Reserve space between the clock edges and its text, in pixels (0–100 per side). Does not resize or reposition the clock."
         - TrayGap: 0
-          $name: Gap before system tray (px)
-        - PillHeight: 26
-          $name: Pill height (px)
-        - FontSize: 15
-          $name: Font size (px)
+          $name: Gap before system tray
+          $description: "Horizontal spacing between the clock and the system tray, in pixels (0–100)."
         - CornerRadius: 13
-          $name: Corner radius (px)
-        - PillPadding: 0
-          $name: Minimum left text inset (px)
+          $name: Corner radius
+          $description: "Roundness of the clock corners, in pixels (0–30)."
+        - FontSize: 15
+          $name: Fontsize
+          $description: "Size of the clock text, in pixels (10–24)."
       $name: Layout settings
       #! $showIf: {AdvancedOptions: true}
     - CustomThemeSettings:
@@ -244,9 +249,70 @@ static int g_refreshHours=24;
 static constexpr UINT WM_EMBERVEIL_UPDATED=WM_APP+42;
 static constexpr UINT WM_EMBERVEIL_APPLY_SETTINGS=WM_APP+43;
 
+
+struct EdgeInsets {
+    int left = 0;
+    int top = 0;
+    int right = 0;
+    int bottom = 0;
+};
+
+static EdgeInsets ParseMargins(const std::wstring& value) {
+    EdgeInsets margins;
+    std::wistringstream stream(value);
+    std::wstring parts[4];
+
+    for (int i = 0; i < 4; ++i) {
+        if (!std::getline(stream, parts[i], L','))
+            return {};
+    }
+
+    // Reject extra values.
+    std::wstring extra;
+    if (std::getline(stream, extra, L','))
+        return {};
+
+    int* values[] = {
+        &margins.left,
+        &margins.top,
+        &margins.right,
+        &margins.bottom
+    };
+
+    for (int i = 0; i < 4; ++i) {
+        wchar_t* end = nullptr;
+        const long parsed = wcstol(parts[i].c_str(), &end, 10);
+
+        if (end == parts[i].c_str())
+            return {};
+
+        while (*end == L' ' || *end == L'\t')
+            ++end;
+
+        if (*end != L'\0' || parsed < -100 || parsed > 100)
+            return {};
+
+        *values[i] = static_cast<int>(parsed);
+    }
+
+    return margins;
+}
+
+
+// Padding is internal to the pill and cannot be negative.
+static EdgeInsets ParsePadding(const std::wstring& value) {
+    EdgeInsets padding=ParseMargins(value);
+    if(padding.left<0 || padding.top<0 ||
+       padding.right<0 || padding.bottom<0)
+        return {};
+    return padding;
+}
+
 struct SettingsSnapshot {
- int width=220, x=0, y=0, trayGap=8;
- int pillHeight=26, cornerRadius=13, pillPadding=12;
+ int width=220, trayGap=8;
+  EdgeInsets margins;
+ int pillHeight=0, cornerRadius=13;
+ EdgeInsets padding;
  int fontSize=15;
  int refreshHours=24;
  std::wstring mosque=L"masjidomar";
@@ -257,13 +323,26 @@ struct SettingsSnapshot {
 static SettingsSnapshot ReadSettings() {
  SettingsSnapshot s;
  s.width=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.Width");if(s.width<180||s.width>400)s.width=220;
- s.x=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.OffsetX");s.y=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.OffsetY");
+ PCWSTR marginsSetting=Wh_GetStringSetting(L"AdvancedCustomization.LayoutSettings.Margins");
+  if(marginsSetting){
+   s.margins=ParseMargins(marginsSetting);
+   Wh_FreeStringSetting(marginsSetting);
+  }
  s.trayGap=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.TrayGap");if(s.trayGap<0||s.trayGap>100)s.trayGap=8;
- s.pillHeight=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.PillHeight");if(s.pillHeight<12||s.pillHeight>30)s.pillHeight=26;
+ s.pillHeight=Wh_GetIntSetting(
+        L"AdvancedCustomization.LayoutSettings.PillHeight"
+    );
+
+    if(s.pillHeight<0 || s.pillHeight>100)
+        s.pillHeight=0;
  s.fontSize=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.FontSize");
  if(s.fontSize<10||s.fontSize>24)s.fontSize=15;
  s.cornerRadius=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.CornerRadius");if(s.cornerRadius<0||s.cornerRadius>30)s.cornerRadius=13;
- s.pillPadding=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.PillPadding");if(s.pillPadding<0||s.pillPadding>40)s.pillPadding=12;
+ PCWSTR paddingSetting=Wh_GetStringSetting(L"AdvancedCustomization.LayoutSettings.Padding");
+ if(paddingSetting){
+  s.padding=ParsePadding(paddingSetting);
+  Wh_FreeStringSetting(paddingSetting);
+ }
  PCWSTR mosque=Wh_GetStringSetting(L"General.Mosque");
  if(mosque){s.mosque=mosque;Wh_FreeStringSetting(mosque);}
   PCWSTR theme=Wh_GetStringSetting(L"General.Theme");
@@ -293,8 +372,10 @@ static std::wstring g_mosqueName=L"Mosque", g_hijriDate=L"";
 static constexpr wchar_t kPopupClass[]=L"EmberveilMawaqitPrayerPopup";
 static HANDLE g_thread=nullptr;
 static DWORD g_threadId=0;
-static int g_width=220,g_x=0,g_y=0,g_trayGap=8;
-static int g_pillHeight=26,g_cornerRadius=13,g_pillPadding=12;
+static int g_width=220,g_trayGap=8;
+static EdgeInsets g_margins;
+static int g_pillHeight=0,g_cornerRadius=13;
+static EdgeInsets g_padding;
 static int g_fontSize=15;
 static constexpr wchar_t kClass[]=L"EmberveilMawaqitLiveWindow";
 struct Prayer { std::wstring name; int minute; };
@@ -669,22 +750,67 @@ static void TogglePopup(){
  LoadMetadata();g_lastMouseDown=(GetAsyncKeyState(VK_LBUTTON)&0x8000)!=0;PositionPopup();InvalidateRect(g_popup,nullptr,FALSE);
 }
 
+
 static void Position(HWND hwnd) {
- HWND taskbar = GetParent(hwnd);
- if (!taskbar || !IsWindow(taskbar)) { ShowWindow(hwnd, SW_HIDE); return; }
- HWND tray = FindWindowExW(taskbar, nullptr, L"TrayNotifyWnd", nullptr);
- RECT trayRect{}, clientRect{};
- if (!tray || !GetWindowRect(tray, &trayRect) || !GetClientRect(taskbar, &clientRect)) {
-  ShowWindow(hwnd, SW_HIDE); return;
- }
- POINT trayPoint{trayRect.left, trayRect.top};
- if (!ScreenToClient(taskbar, &trayPoint)) { ShowWindow(hwnd, SW_HIDE); return; }
- constexpr int height = 30;
- int x = trayPoint.x - g_width - g_trayGap + g_x;
- int y = (clientRect.bottom - clientRect.top - height) / 2 + g_y;
- if (x < 0 || x + g_width > clientRect.right) { ShowWindow(hwnd, SW_HIDE); return; }
- SetWindowPos(hwnd, HWND_TOP, x, y, g_width, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+    HWND taskbar=GetParent(hwnd);
+
+    if(!taskbar || !IsWindow(taskbar)){
+        ShowWindow(hwnd,SW_HIDE);
+        return;
+    }
+
+    HWND tray=FindWindowExW(
+        taskbar,nullptr,L"TrayNotifyWnd",nullptr
+    );
+
+    RECT trayRect{},clientRect{};
+
+    if(!tray ||
+       !GetWindowRect(tray,&trayRect) ||
+       !GetClientRect(taskbar,&clientRect)){
+        ShowWindow(hwnd,SW_HIDE);
+        return;
+    }
+
+    POINT trayPoint{trayRect.left,trayRect.top};
+
+    if(!ScreenToClient(taskbar,&trayPoint)){
+        ShowWindow(hwnd,SW_HIDE);
+        return;
+    }
+
+    const int taskbarHeight=clientRect.bottom-clientRect.top;
+
+    if(taskbarHeight<=0){
+        ShowWindow(hwnd,SW_HIDE);
+        return;
+    }
+
+    // Automatic height: taskbar height minus breathing room.
+    const int autoHeight=std::max(12,taskbarHeight-12);
+
+    // Zero means automatic; positive values are manual.
+    const int requestedHeight=
+        g_pillHeight==0?autoHeight:g_pillHeight;
+
+    // Keep the widget within the available taskbar height.
+    const int height=std::min(requestedHeight,taskbarHeight);
+
+    const int x=trayPoint.x-g_width-g_trayGap+g_margins.left-g_margins.right;
+    const int y=(taskbarHeight-height)/2+g_margins.top-g_margins.bottom;
+
+    if(x<0 || x+g_width>clientRect.right){
+        ShowWindow(hwnd,SW_HIDE);
+        return;
+    }
+
+    SetWindowPos(
+        hwnd,HWND_TOP,
+        x,y,g_width,height,
+        SWP_NOACTIVATE|SWP_SHOWWINDOW
+    );
 }
+
 
 static DWORD WINAPI UpdateWorker(void*) {
  HANDLE events[]={g_stopEvent,g_settingsEvent};
@@ -723,10 +849,10 @@ static LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
  case WM_EMBERVEIL_APPLY_SETTINGS:{
   const SettingsSnapshot* s=reinterpret_cast<const SettingsSnapshot*>(lp);
   if(!s)return 0;
-  g_width=s->width;g_x=s->x;g_y=s->y;g_trayGap=s->trayGap;
+  g_width=s->width;g_margins=s->margins;g_trayGap=s->trayGap;
   g_pillHeight=s->pillHeight;g_cornerRadius=s->cornerRadius;
   g_fontSize=s->fontSize;
-  g_pillPadding=s->pillPadding;
+  g_padding=s->padding;
   g_theme=s->theme;
   g_showNextPrayer=s->showNextPrayer;
   g_showCountdown=s->showCountdown;
@@ -755,26 +881,69 @@ static LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
   HDC mem=CreateCompatibleDC(dc);HBITMAP bmp=CreateCompatibleBitmap(dc,r.right,r.bottom);HGDIOBJ old=SelectObject(mem,bmp);
   // Black is the layered-window transparency key; the pill alone remains visible.
   HBRUSH clear=CreateSolidBrush(RGB(0,0,0));FillRect(mem,&r,clear);DeleteObject(clear);
-  int top=(r.bottom-g_pillHeight)/2;
-  RECT pill={2,top,r.right-2,top+g_pillHeight};
-  int radius=g_cornerRadius;
-  if(radius>g_pillHeight/2)radius=g_pillHeight/2;
-  if(radius>(pill.right-pill.left)/2)radius=(pill.right-pill.left)/2;
-  HBRUSH bg=CreateSolidBrush(g_palette.pillBackground);
-  HGDIOBJ oldBrush=SelectObject(mem,bg);
-  HGDIOBJ oldPen=SelectObject(mem,GetStockObject(NULL_PEN));
-  if(radius>0)RoundRect(mem,pill.left,pill.top,pill.right,pill.bottom,radius*2,radius*2);
-  else Rectangle(mem,pill.left,pill.top,pill.right,pill.bottom);
-  SelectObject(mem,oldPen);SelectObject(mem,oldBrush);DeleteObject(bg);
-  HFONT font=CreateFontW(
-    -g_fontSize,0,0,0,FW_MEDIUM,
-    FALSE,FALSE,FALSE,
-    DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,
-    CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,
-    DEFAULT_PITCH,L"Segoe UI"
+  
+  // Draw the pill inside the window, leaving room for rounded corners.
+  constexpr int insetX = 2;
+  constexpr int insetY = 2;
+
+  RECT pill = {
+      insetX,
+      insetY,
+      r.right - insetX,
+      r.bottom - insetY
+  };
+
+  const int pillWidth = pill.right - pill.left;
+  const int pillHeight = pill.bottom - pill.top;
+
+  const int radius = std::clamp(
+      g_cornerRadius,
+      0,
+      std::min(pillWidth, pillHeight) / 2
   );
+
+  HBRUSH bg = CreateSolidBrush(g_palette.pillBackground);
+  HGDIOBJ oldBrush = SelectObject(mem, bg);
+  HGDIOBJ oldPen = SelectObject(mem, GetStockObject(NULL_PEN));
+
+  if (radius > 0) {
+      RoundRect(
+          mem,
+          pill.left, pill.top,
+          pill.right, pill.bottom,
+          radius * 2, radius * 2
+      );
+  } else {
+      Rectangle(
+          mem,
+          pill.left, pill.top,
+          pill.right, pill.bottom
+      );
+  }
+
+  SelectObject(mem, oldPen);
+  SelectObject(mem, oldBrush);
+  DeleteObject(bg);
+                 
+    HFONT font=CreateFontW(
+        -g_fontSize,0,0,0,FW_MEDIUM,
+        FALSE,FALSE,FALSE,
+        DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,
+        CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,
+        DEFAULT_PITCH,L"Segoe UI"
+    );
   HGDIOBJ oldfont=SelectObject(mem,font);SetBkMode(mem,TRANSPARENT);
-  // Center the enabled text elements as one group; omit the separator unless both are shown.
+  // Padding constrains only the text. The pill's size and position stay unchanged.
+  const RECT content={
+      std::min<int>(r.right,g_padding.left),
+      std::min<int>(r.bottom,g_padding.top),
+      std::max<int>(0,r.right-g_padding.right),
+      std::max<int>(0,r.bottom-g_padding.bottom)
+  };
+  const int left=std::min(content.left,content.right);
+  const int right=std::max<int>(left,content.right);
+  const int top=std::min(content.top,content.bottom);
+  const int bottom=std::max<int>(top,content.bottom);
   const bool showLabel=g_showNextPrayer;
   const bool showCount=g_showCountdown;
   const wchar_t* separator=L"·";
@@ -785,26 +954,29 @@ static LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
   constexpr int gap=7;
   int total=labelSize.cx+countSize.cx;
   if(showLabel&&showCount)total+=separatorSize.cx+2*gap;
-  int x=(r.right-total)/2;
-  if(x<g_pillPadding+2)x=g_pillPadding+2;
+  int x=left+(right-left-total)/2;
+  // Clip every text element to the padded content area, including on narrow pills.
+  const int savedDC=SaveDC(mem);
+  IntersectClipRect(mem,left,top,right,bottom);
   if(showLabel){
-   RECT labelRect={x,0,x+labelSize.cx,r.bottom};
+   RECT labelRect={x,top,x+labelSize.cx,bottom};
    SetTextColor(mem,g_palette.pillText);
    DrawTextW(mem,g_label.c_str(),-1,&labelRect,DT_SINGLELINE|DT_VCENTER|DT_LEFT|DT_NOPREFIX);
    x+=labelSize.cx;
   }
   if(showLabel&&showCount){
    x+=gap;
-   RECT separatorRect={x,0,x+separatorSize.cx,r.bottom};
+   RECT separatorRect={x,top,x+separatorSize.cx,bottom};
    SetTextColor(mem,g_palette.pillSeparator);
    DrawTextW(mem,separator,-1,&separatorRect,DT_SINGLELINE|DT_VCENTER|DT_LEFT|DT_NOPREFIX);
    x+=separatorSize.cx+gap;
   }
   if(showCount){
-   RECT countdownRect={x,0,x+countSize.cx,r.bottom};
+   RECT countdownRect={x,top,x+countSize.cx,bottom};
    SetTextColor(mem,g_palette.pillCountdown);
    DrawTextW(mem,g_countdown.c_str(),-1,&countdownRect,DT_SINGLELINE|DT_VCENTER|DT_LEFT|DT_NOPREFIX);
   }
+  RestoreDC(mem,savedDC);
   BitBlt(dc,0,0,r.right,r.bottom,mem,0,0,SRCCOPY);SelectObject(mem,oldfont);DeleteObject(font);SelectObject(mem,old);DeleteObject(bmp);DeleteDC(mem);EndPaint(hwnd,&ps);return 0;
  }
  case WM_TIMER:{
@@ -852,9 +1024,9 @@ static DWORD WINAPI Thread(void*){
 BOOL Wh_ModInit(){
  Wh_Log(L"[Emberveil] Wh_ModInit called");
  SettingsSnapshot settings=ReadSettings();
- g_width=settings.width;g_x=settings.x;g_y=settings.y;
+ g_width=settings.width;g_margins=settings.margins;
  g_trayGap=settings.trayGap;g_pillHeight=settings.pillHeight;
- g_cornerRadius=settings.cornerRadius;g_pillPadding=settings.pillPadding;
+ g_cornerRadius=settings.cornerRadius;g_padding=settings.padding;
  g_fontSize=settings.fontSize;
  g_theme=settings.theme;
  g_showNextPrayer=settings.showNextPrayer;

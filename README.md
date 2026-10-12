@@ -3,7 +3,7 @@ An unofficial, customizable **Mawaqit prayer clock for the Windows 11 taskbar**,
 
 Displays the upcoming prayer and a live countdown in a taskbar pill, with a clickable prayer-schedule popup. Designed with the **Emberveil** visual style in mind.
 
-> **Release candidate: v0.6.2.** Tested by the project author in their Windows setup; broader compatibility has not yet been established.
+> **Release candidate: v0.6.6.** Tested by the project author in their Windows setup; broader compatibility has not yet been established.
 
 > **Windhawk 2.0 or newer is recommended.** Earlier versions may display all configuration fields because they don't support conditional settings visibility.
 
@@ -13,7 +13,7 @@ Displays the upcoming prayer and a live countdown in a taskbar pill, with a clic
 - Five appearance themes: **Emberveil**, **Windows / System**, **Traditional Islamic**, **Catppucchin Mocha**, and **Custom**
 - Independent custom colors for the pill and popup
 - Visibility switches for the prayer label, countdown, and popup
-- Adjustable widget dimensions, positioning, tray gap, and corner radius
+- Automatic taskbar-aware height or manual height override, four-sided margin and padding, tray gap, and corner radius
 - Background schedule updates through native WinHTTP, with configurable refresh interval
 - Live settings updates without restarting Explorer
 
@@ -51,21 +51,22 @@ The mod targets the 64-bit Windows Explorer process (`explorer.exe`). Other conf
 This is a source distribution; no precompiled executable is included.
 
 ## Configuration
-Settings appear in this order:
+Settings are organized into the following groups:
 
 | Group | Options |
 | --- | --- |
-| Mawaqit | Mosque identifier or URL; refresh interval |
-| Appearance | Theme preset |
-| Display | Show next prayer; show countdown; enable popup |
-| Custom pill | Background, prayer text, separator, countdown colors |
-| Custom popup | Background, border, main/secondary text, dividers, footer colors |
-| Layout | Width, horizontal/vertical offsets, tray gap, pill height, corner radius |
-| Advanced | Minimum left text inset |
+| General | Mosque ID or URL; appearance theme |
+| Display | Show next prayer; show countdown; enable prayer popup |
+| Advanced customization | Show advanced options (off by default) |
+| Mod settings (advanced) | Schedule refresh interval |
+| Layout settings (advanced) | Width; Height; Margin (left, top, right, bottom); Padding (left, top, right, bottom); Gap before system tray; Corner radius; Fontsize |
+| Custom theme settings (advanced) | Pill and popup color controls |
+
+Set **Height** to `0` to follow the taskbar size automatically. **Margin** moves the clock without resizing it; **Padding** reserves space for text inside the clock without moving or resizing it. Both accept four comma-separated values in `left, top, right, bottom` order. See [CONFIGURATION.md](CONFIGURATION.md) for examples and the complete settings reference.
 
 Custom color settings only affect the widget when **Custom** is selected. All three Display switches default to enabled.
 
-For a mosque, enter a slug such as `al-haram-makkah-saudi-arabia` or a URL such as `https://mawaqit.net/en/al-haram-makkah-saudi-arabia`. The source defaults to `al-haram-makkah-saudi-arabia`; change it to your own mosque.
+For a mosque, enter a slug such as `al-haram-makkah-saudi-arabia` or a URL such as `https://mawaqit.net/en/al-haram-makkah-saudi-arabia`. The source defaults to `masjidomar`; change it to your own mosque.
 
 ## How schedule updates work
 The mod fetches the configured Mawaqit mosque page over HTTPS and reads schedule data embedded in the page. It caches generated schedule and metadata files under:
@@ -84,7 +85,7 @@ The default refresh interval is 24 hours; failed updates are retried after one h
 This is an **unofficial community project**, not affiliated with, sponsored by, or endorsed by Mawaqit. Prayer data is provided by the configured Mawaqit page; verify important prayer times with your mosque. Before publishing or distributing broadly, review Mawaqit's applicable terms and data-use permissions.
 
 ## License
-**To be selected before publication.** No open-source license is granted by this repository draft until a license is added. See `PUBLISHING_CHECKLIST.md`.
+**Publishing check:** The Windhawk source declares MIT License, but a repository `LICENSE` file has not been provided for verification. Confirm the intended license and add the corresponding file before publishing. See `PUBLISHING_CHECKLIST.md`.
 
 ## Credits
 - Prayer schedule source: [Mawaqit](https://mawaqit.net/)

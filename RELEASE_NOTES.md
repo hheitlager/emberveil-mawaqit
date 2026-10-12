@@ -1,6 +1,6 @@
-# Mawaqit Prayer Clock v0.6.2
+# Mawaqit Prayer Clock v0.6.6
 
-**Initial public release candidate**
+**Taskbar-aware layout update — release candidate**
 
 A customizable, unofficial Mawaqit prayer clock for the Windows 11 taskbar, powered by Windhawk.
 
@@ -11,12 +11,19 @@ A customizable, unofficial Mawaqit prayer clock for the Windows 11 taskbar, powe
 - Five themes: Emberveil, Windows / System, Traditional Islamic, Catppucchin Mocha, and Custom
 - Independent custom colors for pill and popup
 - Visibility switches for prayer label, countdown, and popup
-- Layout adjustments and configurable background updates
-- Improved settings organization in v0.6.2
+- Automatic height that adapts to Windows taskbar sizing, plus manual height override
+- Four-sided margins for positioning and four-sided padding for text spacing
+- Simplified layout settings labels and order
+- Corrected rounded corners at automatic height
+- Configurable background schedule updates and live settings changes
+
+### Upgrading from older versions
+
+The previous `OffsetX`, `OffsetY`, and `PillPadding` settings are no longer used. Configure `Margins` and `Padding` instead. `PillHeight = 0` enables automatic height. See [CONFIGURATION.md](CONFIGURATION.md) for examples.
 
 ### Installation
 
-Install Windhawk, create a new mod, paste `src/emberveil-mawaqit.wh.cpp`, compile, enable, and configure your Mawaqit mosque in the mod settings. See README for details.
+Install Windhawk, create a new mod, paste `src/windhawk-mawaqit.wh.cpp`, compile, enable, and configure your Mawaqit mosque in the mod settings. See README for details.
 
 ### Notes
 
@@ -25,4 +32,4 @@ Install Windhawk, create a new mod, paste `src/emberveil-mawaqit.wh.cpp`, compil
 - Unofficial project, not affiliated with Mawaqit.
 - Requires access to Mawaqit's website; upstream page changes can affect schedule retrieval.
 
-**Before publishing:** choose and add a LICENSE, check upstream terms, add screenshots, and verify the final build.
+**Before publishing:** Confirm the license (the source currently says MIT, while repository license status has not been verified), add a matching `LICENSE` file, check upstream terms, and verify the final build. Screenshots are already referenced in the README; confirm the image files are present.
