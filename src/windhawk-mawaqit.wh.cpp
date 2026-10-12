@@ -2,8 +2,8 @@
 // @id windhawk-mawaqit
 // @name Mawaqit Prayer Clock
 // @description Mawaqit prayer clock for the Windows 11 taskbar. Displays the upcoming prayer, a live countdown, and a clickable prayer schedule.
-// @version 0.6.3
-// @author Sensei
+// @version 0.6.4
+// @author HHeitlager
 // @github https://github.com/hheitlager
 // @include explorer.exe
 // @architecture x86-64
@@ -61,6 +61,7 @@ with or endorsed by Mawaqit.
   $name: Mawaqit - Mosque ID or URL
   $description: "Mosque identifier or full Mawaqit URL (e.g. https://mawaqit.net/en/al-haram-makkah-saudi-arabia)."
 - RefreshHours: 24
+  #! $showIf: {AdvancedOptions: true}
   $name: Mawaqit - Refresh interval (hours)
   $description: "How often to refresh the prayer schedule. Failed updates retry after one hour."
 - Theme: emberveil
@@ -71,7 +72,7 @@ with or endorsed by Mawaqit.
   - system: Windows / System
   - traditional: Traditional Islamic
   - catppuccin: Catppucchin Mocha
-  - custom: Custom
+
 - ShowNextPrayer: true
   $name: Display - Show next prayer
   $description: "Show the upcoming prayer name and scheduled time in the taskbar pill."
@@ -81,58 +82,79 @@ with or endorsed by Mawaqit.
 - EnablePopup: true
   $name: Display - Enable prayer popup
   $description: "Allow clicking the taskbar pill to open the prayer schedule. Turning this off closes an open popup."
+- AdvancedOptions: false
+  $name: Display - Show advanced options
+  $description: "Show color, layout, typography, and refresh settings. All values remain editable in the Advanced JSON tab."
 - CustomPillBackground: "#211E32"
+  #! $showIf: {AdvancedOptions: true}
   $name: Custom pill - Background
   $description: "Custom theme only. Hex color (#RRGGBB) for the taskbar pill background."
 - CustomPillText: "#F5E6C8"
+  #! $showIf: {AdvancedOptions: true}
   $name: Custom pill - Prayer text
   $description: "Custom theme only. Hex color (#RRGGBB) for prayer name and time."
 - CustomPillSeparator: "#B8A98A"
+  #! $showIf: {AdvancedOptions: true}
   $name: Custom pill - Separator
   $description: "Custom theme only. Hex color (#RRGGBB) for the separator dot."
 - CustomPillCountdown: "#FFBC5E"
+  #! $showIf: {AdvancedOptions: true}
   $name: Custom pill - Countdown
   $description: "Custom theme only. Hex color (#RRGGBB) for the countdown timer."
 - CustomPopupBackground: "#1D1D2D"
+  #! $showIf: {AdvancedOptions: true}
   $name: Custom popup - Background
   $description: "Custom theme only. Hex color (#RRGGBB) for the popup background."
 - CustomPopupBorder: "#3B3B58"
+  #! $showIf: {AdvancedOptions: true}
   $name: Custom popup - Border
   $description: "Custom theme only. Hex color (#RRGGBB) for the popup outline."
 - CustomPopupText: "#D3D0E8"
+  #! $showIf: {AdvancedOptions: true}
   $name: Custom popup - Main text
   $description: "Custom theme only. Hex color (#RRGGBB) for mosque name and prayer rows."
 - CustomPopupMuted: "#B8B3D1"
+  #! $showIf: {AdvancedOptions: true}
   $name: Custom popup - Secondary text
   $description: "Custom theme only. Hex color (#RRGGBB) for the Hijri date and secondary text."
 - CustomPopupRule: "#424158"
+  #! $showIf: {AdvancedOptions: true}
   $name: Custom popup - Dividers
   $description: "Custom theme only. Hex color (#RRGGBB) for horizontal dividing lines."
 - CustomPopupFooter: "#A29DBB"
+  #! $showIf: {AdvancedOptions: true}
   $name: Custom popup - Footer
   $description: "Custom theme only. Hex color (#RRGGBB) for the countdown summary at the bottom."
 - Width: 220
+  #! $showIf: {AdvancedOptions: true}
   $name: Layout - Widget width (px)
   $description: "Width of the taskbar pill (180-400 px)."
 - OffsetX: 0
+  #! $showIf: {AdvancedOptions: true}
   $name: Layout - Horizontal offset (px)
   $description: "Fine-tune position left (negative) or right (positive)."
 - OffsetY: 0
+  #! $showIf: {AdvancedOptions: true}
   $name: Layout - Vertical offset (px)
   $description: "Fine-tune position up (negative) or down (positive)."
 - TrayGap: 0
+  #! $showIf: {AdvancedOptions: true}
   $name: Layout - Gap before system tray (px)
   $description: "Space between the taskbar pill and system tray (0-100 px)."
 - PillHeight: 26
+  #! $showIf: {AdvancedOptions: true}
   $name: Layout - Pill height (px)
   $description: "Height of the painted pill (12-30 px); the widget window remains 30 px high."
 - FontSize: 15
+  #! $showIf: {AdvancedOptions: true}
   $name: Layout - Font size (px)
   $description: "Taskbar pill text size (10-24 px). Default 15 preserves the original appearance."
 - CornerRadius: 13
+  #! $showIf: {AdvancedOptions: true}
   $name: Layout - Corner radius (px)
   $description: "Corner radius; clamped to half the pill height. Smaller values give squarer corners."
 - PillPadding: 0
+  #! $showIf: {AdvancedOptions: true}
   $name: Advanced - Minimum left text inset (px)
   $description: "Only affects text if its centered position would be closer than this inset. Usually has no visible effect; retained for compatibility."
 */

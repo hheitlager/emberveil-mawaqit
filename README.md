@@ -5,6 +5,8 @@ Displays the upcoming prayer and a live countdown in a taskbar pill, with a clic
 
 > **Release candidate: v0.6.2.** Tested by the project author in their Windows setup; broader compatibility has not yet been established.
 
+> **Windhawk 2.0 or newer is recommended.** Earlier versions may display all configuration fields because they don't support conditional settings visibility.
+
 ## Features
 - Upcoming prayer name, scheduled time, and live countdown
 - Clickable prayer-schedule popup
