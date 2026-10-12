@@ -85,9 +85,9 @@ The default refresh interval is 24 hours; failed updates are retried after one h
 This is an **unofficial community project**, not affiliated with, sponsored by, or endorsed by Mawaqit. Prayer data is provided by the configured Mawaqit page; verify important prayer times with your mosque. Before publishing or distributing broadly, review Mawaqit's applicable terms and data-use permissions.
 
 ## License
-[LICENSE](LICENSE) MIT License
+[MIT LICENSE](LICENSE)
 
 ## Credits
 - Prayer schedule source: [Mawaqit](https://mawaqit.net/)
 - Windows mod framework: [Windhawk](https://windhawk.net/)
-- Project and visual direction: [HHeitlager](https://github.com/hheitlager)**HHeitlager**
+- Project and visual direction: **[HHeitlager](https://github.com/hheitlager)**
