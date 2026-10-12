@@ -2,7 +2,7 @@
 // @id windhawk-mawaqit
 // @name Mawaqit Prayer Clock
 // @description Mawaqit prayer clock for your taskbar using Windhawk. Displays the upcoming prayer, a live countdown, and a clickable prayer schedule.
-// @version 0.6.5
+// @version 0.6.5.1
 // @author HHeitlager
 // @github https://github.com/hheitlager
 // @include explorer.exe
@@ -502,46 +502,133 @@ static void UpdateCountdown(){
  }else{g_label=L"Tomorrow unavailable";g_countdown=L"--:--";}
 }
 
+
 static void PaintPopup(HWND hwnd){
- PAINTSTRUCT ps;HDC dc=BeginPaint(hwnd,&ps);RECT r{};GetClientRect(hwnd,&r);
- HDC mem=CreateCompatibleDC(dc);HBITMAP bmp=CreateCompatibleBitmap(dc,r.right,r.bottom);
- HGDIOBJ oldBmp=SelectObject(mem,bmp);
- HBRUSH clear=CreateSolidBrush(RGB(0,0,0));FillRect(mem,&r,clear);DeleteObject(clear);
- HBRUSH bg=CreateSolidBrush(g_palette.popupBackground);HGDIOBJ oldBrush=SelectObject(mem,bg);
- HPEN pen=CreatePen(PS_SOLID,1,g_palette.popupBorder);HGDIOBJ oldPen=SelectObject(mem,pen);
- RoundRect(mem,0,0,r.right,r.bottom,10,10);
- SelectObject(mem,oldPen);DeleteObject(pen);SelectObject(mem,oldBrush);DeleteObject(bg);
- SetBkMode(mem,TRANSPARENT);
- HFONT font=CreateFontW(-15,0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH,L"Segoe UI");
- HGDIOBJ oldFont=SelectObject(mem,font);
- auto line=[&](const std::wstring& text,int left,int top,int right,int height,COLORREF color,UINT flags){
-  RECT rect{left,top,right,top+height};SetTextColor(mem,color);
-  DrawTextW(mem,text.c_str(),-1,&rect,flags|DT_SINGLELINE|DT_VCENTER|DT_NOPREFIX|DT_END_ELLIPSIS);
- };
- // Reserve two lines for long mosque names instead of truncating them.
- RECT nameRect{14,9,r.right-14,53};
- SetTextColor(mem,g_palette.popupText);
- DrawTextW(mem,g_mosqueName.c_str(),-1,&nameRect,DT_CENTER|DT_WORDBREAK|DT_NOPREFIX|DT_END_ELLIPSIS);
- line(g_hijriDate,14,54,r.right-14,19,g_palette.popupMuted,DT_CENTER);
- HPEN rule=CreatePen(PS_SOLID,1,g_palette.popupRule);HGDIOBJ prev=SelectObject(mem,rule);
- MoveToEx(mem,12,85,nullptr);LineTo(mem,r.right-12,85);
- MoveToEx(mem,12,218,nullptr);LineTo(mem,r.right-12,218);
- SelectObject(mem,prev);DeleteObject(rule);
- for(int i=0;i<5;i++){
-  std::wstring time=L"--:--";
-  if(i<(int)g_today.size()){
-   wchar_t b[16];swprintf(b,16,L"%02d:%02d",g_today[i].minute/60,g_today[i].minute%60);time=b;
-  }
-  int y=92+i*25;
-  line(kNames[i],20,y,r.right-20,23,g_palette.popupText,DT_LEFT);
-  line(time,20,y,r.right-20,23,g_palette.popupText,DT_RIGHT);
- }
- std::wstring footer=g_label+L" - in "+g_countdown;
- line(footer,12,223,r.right-12,24,g_palette.popupFooter,DT_CENTER);
- SelectObject(mem,oldFont);DeleteObject(font);
- BitBlt(dc,0,0,r.right,r.bottom,mem,0,0,SRCCOPY);
- SelectObject(mem,oldBmp);DeleteObject(bmp);DeleteDC(mem);EndPaint(hwnd,&ps);
+    PAINTSTRUCT ps;
+    HDC dc=BeginPaint(hwnd,&ps);
+    RECT r{};
+    GetClientRect(hwnd,&r);
+
+    HDC mem=CreateCompatibleDC(dc);
+    HBITMAP bmp=CreateCompatibleBitmap(dc,r.right,r.bottom);
+    HGDIOBJ oldBmp=SelectObject(mem,bmp);
+
+    HBRUSH clear=CreateSolidBrush(RGB(0,0,0));
+    FillRect(mem,&r,clear);
+    DeleteObject(clear);
+
+    HBRUSH bg=CreateSolidBrush(g_palette.popupBackground);
+    HGDIOBJ oldBrush=SelectObject(mem,bg);
+    HPEN pen=CreatePen(PS_SOLID,1,g_palette.popupBorder);
+    HGDIOBJ oldPen=SelectObject(mem,pen);
+
+    RoundRect(mem,0,0,r.right,r.bottom,10,10);
+
+    SelectObject(mem,oldPen);
+    DeleteObject(pen);
+    SelectObject(mem,oldBrush);
+    DeleteObject(bg);
+
+    SetBkMode(mem,TRANSPARENT);
+
+    HFONT font=CreateFontW(
+        -15,0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,
+        DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,
+        CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,
+        DEFAULT_PITCH,L"Segoe UI"
+    );
+    HGDIOBJ oldFont=SelectObject(mem,font);
+
+    auto line=[&](const std::wstring& text,int left,int top,
+                  int right,int height,COLORREF color,UINT flags){
+        RECT rect{left,top,right,top+height};
+        SetTextColor(mem,color);
+        DrawTextW(mem,text.c_str(),-1,&rect,
+                  flags|DT_SINGLELINE|DT_VCENTER|
+                  DT_NOPREFIX|DT_END_ELLIPSIS);
+    };
+
+    // Layout dimensions.
+    constexpr int padding=12;
+    constexpr int rowHeight=25;
+    constexpr int textHeight=23;
+    constexpr int footerHeight=24;
+
+    // Mosque title: preserve support for two lines.
+    RECT nameRect{14,9,r.right-14,53};
+    SetTextColor(mem,g_palette.popupText);
+    DrawTextW(mem,g_mosqueName.c_str(),-1,&nameRect,
+              DT_CENTER|DT_WORDBREAK|DT_NOPREFIX|DT_END_ELLIPSIS);
+
+    // Only reserve Hijri date space when a date exists.
+    const bool hasHijri=!g_hijriDate.empty();
+
+    if(hasHijri){
+        line(g_hijriDate,14,54,r.right-14,19,
+             g_palette.popupMuted,DT_CENTER);
+    }
+
+    // Bring the first separator closer to the mosque title.
+    const int topRule=hasHijri?85:65;
+
+    // Keep the footer at the bottom of the existing popup.
+    const int bottomRule=r.bottom-34;
+
+    HPEN rule=CreatePen(PS_SOLID,1,g_palette.popupRule);
+    HGDIOBJ prev=SelectObject(mem,rule);
+
+    MoveToEx(mem,padding,topRule,nullptr);
+    LineTo(mem,r.right-padding,topRule);
+
+    MoveToEx(mem,padding,bottomRule,nullptr);
+    LineTo(mem,r.right-padding,bottomRule);
+
+    SelectObject(mem,prev);
+    DeleteObject(rule);
+
+    // Distribute the prayer rows evenly between the separators.
+    const int listTop=topRule+padding;
+    const int listBottom=bottomRule-padding;
+    const int availableHeight=listBottom-listTop;
+    const int contentHeight=5*rowHeight;
+    const int firstRow=listTop+(availableHeight-contentHeight)/2;
+
+    for(int i=0;i<5;i++){
+        std::wstring time=L"--:--";
+
+        if(i<(int)g_today.size()){
+            wchar_t b[16];
+            swprintf(b,16,L"%02d:%02d",
+                     g_today[i].minute/60,
+                     g_today[i].minute%60);
+            time=b;
+        }
+
+        int y=firstRow+i*rowHeight;
+
+        line(kNames[i],20,y,r.right-20,textHeight,
+             g_palette.popupText,DT_LEFT);
+
+        line(time,20,y,r.right-20,textHeight,
+             g_palette.popupText,DT_RIGHT);
+    }
+
+    // Footer.
+    std::wstring footer=g_label+L" - in "+g_countdown;
+    line(footer,12,bottomRule+5,r.right-12,footerHeight,
+         g_palette.popupFooter,DT_CENTER);
+
+    SelectObject(mem,oldFont);
+    DeleteObject(font);
+
+    BitBlt(dc,0,0,r.right,r.bottom,mem,0,0,SRCCOPY);
+
+    SelectObject(mem,oldBmp);
+    DeleteObject(bmp);
+    DeleteDC(mem);
+    EndPaint(hwnd,&ps);
 }
+
 
 static LRESULT CALLBACK PopupProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
  switch(msg){
