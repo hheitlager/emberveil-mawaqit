@@ -1,8 +1,8 @@
 // ==WindhawkMod==
 // @id windhawk-mawaqit
 // @name Mawaqit Prayer Clock
-// @description Mawaqit prayer clock for the Windows 11 taskbar. Displays the upcoming prayer, a live countdown, and a clickable prayer schedule.
-// @version 0.6.4
+// @description Mawaqit prayer clock for your taskbar using Windhawk. Displays the upcoming prayer, a live countdown, and a clickable prayer schedule.
+// @version 0.6.5
 // @author HHeitlager
 // @github https://github.com/hheitlager
 // @include explorer.exe
@@ -12,11 +12,12 @@
 
 // ==WindhawkModReadme==
 /*
-# Mawaqit Prayer Clock
-An unofficial, customizable Mawaqit prayer clock for the Windows 11 taskbar.
+**# Mawaqit Prayer Clock**
+An unofficial, customizable Mawaqit prayer clock for your taskbar using Windhawk.
+
 Displays the upcoming prayer, a live countdown, and a clickable prayer schedule.
 
-## Features
+**## Features**
 - Five appearance themes
 - Customizable pill and popup colors
 - Prayer label, countdown, and popup visibility controls
@@ -24,32 +25,31 @@ Displays the upcoming prayer, a live countdown, and a clickable prayer schedule.
 - Automatic prayer schedule updates
 - Live settings updates without restarting Explorer
 
-## Screenshots
-### Windows/System Defaul | Traditional Islamic
+**## Screenshots**
+**### Windows/System Defaul | Traditional Islamic**
 ![Windows](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/Mawaqit-Windows-System-Default.png) ![Traditional](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/Mawaqit-Traditional-Islamic.png)
 
-### Catppucchin Mocha | Emberveil
+**### Catppucchin Mocha | Emberveil**
 ![Catppucchin Mocha](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/Mawaqit-Catppucchin-Moca.png) ![Emberveil](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/Mawaqit-Emberveil.png)
 
-### My fully custom desktop preview
+**### My fully custom desktop preview**
 ![Desktop](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/My-Desktop.png)
 
-## Configuration
+**## Configuration**
 Choose a mosque identifier or Mawaqit URL in Settings.
 Select an appearance theme and customize the widget as desired.
-
 Custom color settings only apply when the Custom theme is selected.
 
-## More information
+**## More information**
 For installation instructions, additional screenshots,
 troubleshooting, and release information, visit:
 
 [GitHub Project](https://github.com/hheitlager/windhawk-mawaqit)
 
-## License
+**## License**
 MIT License.
 
-## Disclaimer
+**## Disclaimer**
 This is an unofficial community project and is not affiliated
 with or endorsed by Mawaqit.
 */
@@ -57,106 +57,80 @@ with or endorsed by Mawaqit.
 
 // ==WindhawkModSettings==
 /*
-- Mosque: masjidomar
-  $name: Mawaqit - Mosque ID or URL
-  $description: "Mosque identifier or full Mawaqit URL (e.g. https://mawaqit.net/en/al-haram-makkah-saudi-arabia)."
-- RefreshHours: 24
-  #! $showIf: {AdvancedOptions: true}
-  $name: Mawaqit - Refresh interval (hours)
-  $description: "How often to refresh the prayer schedule. Failed updates retry after one hour."
-- Theme: emberveil
-  $name: Appearance - Theme
-  $description: "Choose a preset for both pill and popup. Select Custom to use the independent colors below."
-  $options:
-  - emberveil: Emberveil
-  - system: Windows / System
-  - traditional: Traditional Islamic
-  - catppuccin: Catppucchin Mocha
-
-- ShowNextPrayer: true
-  $name: Display - Show next prayer
-  $description: "Show the upcoming prayer name and scheduled time in the taskbar pill."
-- ShowCountdown: true
-  $name: Display - Show countdown
-  $description: "Show the time remaining until the next prayer. The separator only appears when both are visible."
-- EnablePopup: true
-  $name: Display - Enable prayer popup
-  $description: "Allow clicking the taskbar pill to open the prayer schedule. Turning this off closes an open popup."
-- AdvancedOptions: false
-  $name: Display - Show advanced options
-  $description: "Show color, layout, typography, and refresh settings. All values remain editable in the Advanced JSON tab."
-- CustomPillBackground: "#211E32"
-  #! $showIf: {AdvancedOptions: true}
-  $name: Custom pill - Background
-  $description: "Custom theme only. Hex color (#RRGGBB) for the taskbar pill background."
-- CustomPillText: "#F5E6C8"
-  #! $showIf: {AdvancedOptions: true}
-  $name: Custom pill - Prayer text
-  $description: "Custom theme only. Hex color (#RRGGBB) for prayer name and time."
-- CustomPillSeparator: "#B8A98A"
-  #! $showIf: {AdvancedOptions: true}
-  $name: Custom pill - Separator
-  $description: "Custom theme only. Hex color (#RRGGBB) for the separator dot."
-- CustomPillCountdown: "#FFBC5E"
-  #! $showIf: {AdvancedOptions: true}
-  $name: Custom pill - Countdown
-  $description: "Custom theme only. Hex color (#RRGGBB) for the countdown timer."
-- CustomPopupBackground: "#1D1D2D"
-  #! $showIf: {AdvancedOptions: true}
-  $name: Custom popup - Background
-  $description: "Custom theme only. Hex color (#RRGGBB) for the popup background."
-- CustomPopupBorder: "#3B3B58"
-  #! $showIf: {AdvancedOptions: true}
-  $name: Custom popup - Border
-  $description: "Custom theme only. Hex color (#RRGGBB) for the popup outline."
-- CustomPopupText: "#D3D0E8"
-  #! $showIf: {AdvancedOptions: true}
-  $name: Custom popup - Main text
-  $description: "Custom theme only. Hex color (#RRGGBB) for mosque name and prayer rows."
-- CustomPopupMuted: "#B8B3D1"
-  #! $showIf: {AdvancedOptions: true}
-  $name: Custom popup - Secondary text
-  $description: "Custom theme only. Hex color (#RRGGBB) for the Hijri date and secondary text."
-- CustomPopupRule: "#424158"
-  #! $showIf: {AdvancedOptions: true}
-  $name: Custom popup - Dividers
-  $description: "Custom theme only. Hex color (#RRGGBB) for horizontal dividing lines."
-- CustomPopupFooter: "#A29DBB"
-  #! $showIf: {AdvancedOptions: true}
-  $name: Custom popup - Footer
-  $description: "Custom theme only. Hex color (#RRGGBB) for the countdown summary at the bottom."
-- Width: 220
-  #! $showIf: {AdvancedOptions: true}
-  $name: Layout - Widget width (px)
-  $description: "Width of the taskbar pill (180-400 px)."
-- OffsetX: 0
-  #! $showIf: {AdvancedOptions: true}
-  $name: Layout - Horizontal offset (px)
-  $description: "Fine-tune position left (negative) or right (positive)."
-- OffsetY: 0
-  #! $showIf: {AdvancedOptions: true}
-  $name: Layout - Vertical offset (px)
-  $description: "Fine-tune position up (negative) or down (positive)."
-- TrayGap: 0
-  #! $showIf: {AdvancedOptions: true}
-  $name: Layout - Gap before system tray (px)
-  $description: "Space between the taskbar pill and system tray (0-100 px)."
-- PillHeight: 26
-  #! $showIf: {AdvancedOptions: true}
-  $name: Layout - Pill height (px)
-  $description: "Height of the painted pill (12-30 px); the widget window remains 30 px high."
-- FontSize: 15
-  #! $showIf: {AdvancedOptions: true}
-  $name: Layout - Font size (px)
-  $description: "Taskbar pill text size (10-24 px). Default 15 preserves the original appearance."
-- CornerRadius: 13
-  #! $showIf: {AdvancedOptions: true}
-  $name: Layout - Corner radius (px)
-  $description: "Corner radius; clamped to half the pill height. Smaller values give squarer corners."
-- PillPadding: 0
-  #! $showIf: {AdvancedOptions: true}
-  $name: Advanced - Minimum left text inset (px)
-  $description: "Only affects text if its centered position would be closer than this inset. Usually has no visible effect; retained for compatibility."
+- General:
+    - Mosque: masjidomar
+      $name: Mawaqit - Mosque ID or URL
+      $description: "Mosque identifier or full Mawaqit URL."
+    - Theme: emberveil
+      $name: Appearance - Theme
+      $description: "Choose a preset for the pill and popup. Set custom in Advanced JSON to use custom colors."
+      $options:
+        - emberveil: Emberveil
+        - system: Windows / System
+        - traditional: Traditional Islamic
+        - catppuccin: Catppuccin Mocha
+  $name: General
+- Display:
+    - ShowNextPrayer: true
+      $name: Show next prayer
+    - ShowCountdown: true
+      $name: Show countdown
+    - EnablePopup: true
+      $name: Enable prayer popup
+  $name: Display
+- AdvancedCustomization:
+    - AdvancedOptions: false
+      $name: Show advanced options
+      $description: "Show additional customization settings."
+    - ModSettingsAdvanced:
+        - RefreshHours: 24
+          $name: Refresh interval (hours)
+          $description: "How often to refresh the prayer schedule. Failed updates retry after one hour."
+      $name: Mod settings
+      #! $showIf: {AdvancedOptions: true}
+    - LayoutSettings:
+        - Width: 220
+          $name: Widget width (px)
+        - OffsetX: 0
+          $name: Horizontal offset (px)
+        - OffsetY: 0
+          $name: Vertical offset (px)
+        - TrayGap: 0
+          $name: Gap before system tray (px)
+        - PillHeight: 26
+          $name: Pill height (px)
+        - FontSize: 15
+          $name: Font size (px)
+        - CornerRadius: 13
+          $name: Corner radius (px)
+        - PillPadding: 0
+          $name: Minimum left text inset (px)
+      $name: Layout settings
+      #! $showIf: {AdvancedOptions: true}
+    - CustomThemeSettings:
+        - CustomPillBackground: "#211E32"
+          $name: Pill background
+        - CustomPillText: "#F5E6C8"
+          $name: Pill prayer text
+        - CustomPillSeparator: "#B8A98A"
+          $name: Pill separator
+        - CustomPillCountdown: "#FFBC5E"
+          $name: Pill countdown
+        - CustomPopupBackground: "#1D1D2D"
+          $name: Popup background
+        - CustomPopupBorder: "#3B3B58"
+          $name: Popup border
+        - CustomPopupText: "#D3D0E8"
+          $name: Popup main text
+        - CustomPopupMuted: "#B8B3D1"
+          $name: Popup secondary text
+        - CustomPopupRule: "#424158"
+          $name: Popup dividers
+        - CustomPopupFooter: "#A29DBB"
+          $name: Popup footer
+      $name: Custom theme settings
+      #! $showIf: {AdvancedOptions: true}
+  $name: Advanced customization
 */
 // ==/WindhawkModSettings==
 
@@ -165,10 +139,8 @@ with or endorsed by Mawaqit.
 #include <shlobj.h>
 #include <map>
 #include <stdexcept>
-#include <sstream>
 #include <algorithm>
 #include <cstdio>
-#include <iterator>
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -182,9 +154,7 @@ with or endorsed by Mawaqit.
 namespace NativeUpdater {
 
 static void fail(const char* s){throw std::runtime_error(s);}
-
 static std::string narrow(const std::wstring& s){if(s.empty())return {};int n=WideCharToMultiByte(CP_UTF8,0,s.data(),(int)s.size(),nullptr,0,nullptr,nullptr);std::string r(n,0);WideCharToMultiByte(CP_UTF8,0,s.data(),(int)s.size(),r.data(),n,nullptr,nullptr);return r;}
-
 static std::string quote(const std::string& s){std::string o="\"";for(unsigned char c:s){switch(c){case '"':o+="\\\"";break;case '\\':o+="\\\\";break;case '\n':o+="\\n";break;case '\r':o+="\\r";break;case '\t':o+="\\t";break;default:if(c<32){char b[7];snprintf(b,sizeof(b),"\\u%04x",c);o+=b;}else o+=(char)c;}}return o+"\"";}
 
 struct J {
@@ -224,15 +194,10 @@ static std::string extract(const std::string& html){
 }
 
 static bool leap(int y){return y%4==0&&(y%100!=0||y%400==0);}
-
 static int days(int y,int m){static const int d[]={31,28,31,30,31,30,31,31,30,31,30,31};return d[m-1]+(m==2&&leap(y));}
-
 static std::string date(int y,int m,int d){char b[16];snprintf(b,sizeof(b),"%04d-%02d-%02d",y,m,d);return b;}
-
 static bool validTime(const std::string& t){return t.size()==5&&t[2]==':'&&t[0]>='0'&&t[0]<='2'&&t[1]>='0'&&t[1]<='9'&&t[3]>='0'&&t[3]<='5'&&t[4]>='0'&&t[4]<='9'&&((t[0]-'0')*10+t[1]-'0')<24;}
-
 static void writeFile(const std::wstring& path,const std::string& content){HANDLE h=CreateFileW(path.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);if(h==INVALID_HANDLE_VALUE)fail("Cannot create temporary cache file");DWORD written=0;BOOL ok=WriteFile(h,content.data(),(DWORD)content.size(),&written,nullptr);FlushFileBuffers(h);CloseHandle(h);if(!ok||written!=content.size())fail("Cache write failed");}
-
 static void replace(const std::wstring& from,const std::wstring& to){if(!MoveFileExW(from.c_str(),to.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH))fail("Cache replace failed");}
 
 static std::wstring normalize(std::wstring input,std::wstring& slug){
@@ -264,19 +229,13 @@ static bool Run(const std::wstring& mosque) {
  try{writeFile(tmp1,sched.str());writeFile(tmp2,meta.str());replace(tmp1,dir+L"\\schedule.txt");replace(tmp2,dir+L"\\metadata.json");}catch(...){DeleteFileW(tmp1.c_str());DeleteFileW(tmp2.c_str());throw;}
  return true;
 }
-
 }
 
 static HANDLE g_updaterThread=nullptr, g_stopEvent=nullptr, g_settingsEvent=nullptr;
-
 static SRWLOCK g_updaterLock = SRWLOCK_INIT;
-
 static std::wstring g_mosque=L"masjidomar";
-
 static int g_refreshHours=24;
-
 static constexpr UINT WM_EMBERVEIL_UPDATED=WM_APP+42;
-
 static constexpr UINT WM_EMBERVEIL_APPLY_SETTINGS=WM_APP+43;
 
 struct SettingsSnapshot {
@@ -291,23 +250,23 @@ struct SettingsSnapshot {
 
 static SettingsSnapshot ReadSettings() {
  SettingsSnapshot s;
- s.width=Wh_GetIntSetting(L"Width");if(s.width<180||s.width>400)s.width=220;
- s.x=Wh_GetIntSetting(L"OffsetX");s.y=Wh_GetIntSetting(L"OffsetY");
- s.trayGap=Wh_GetIntSetting(L"TrayGap");if(s.trayGap<0||s.trayGap>100)s.trayGap=8;
- s.pillHeight=Wh_GetIntSetting(L"PillHeight");if(s.pillHeight<12||s.pillHeight>30)s.pillHeight=26;
- s.fontSize=Wh_GetIntSetting(L"FontSize");
+ s.width=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.Width");if(s.width<180||s.width>400)s.width=220;
+ s.x=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.OffsetX");s.y=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.OffsetY");
+ s.trayGap=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.TrayGap");if(s.trayGap<0||s.trayGap>100)s.trayGap=8;
+ s.pillHeight=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.PillHeight");if(s.pillHeight<12||s.pillHeight>30)s.pillHeight=26;
+ s.fontSize=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.FontSize");
  if(s.fontSize<10||s.fontSize>24)s.fontSize=15;
- s.cornerRadius=Wh_GetIntSetting(L"CornerRadius");if(s.cornerRadius<0||s.cornerRadius>30)s.cornerRadius=13;
- s.pillPadding=Wh_GetIntSetting(L"PillPadding");if(s.pillPadding<0||s.pillPadding>40)s.pillPadding=12;
- PCWSTR mosque=Wh_GetStringSetting(L"Mosque");
+ s.cornerRadius=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.CornerRadius");if(s.cornerRadius<0||s.cornerRadius>30)s.cornerRadius=13;
+ s.pillPadding=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.PillPadding");if(s.pillPadding<0||s.pillPadding>40)s.pillPadding=12;
+ PCWSTR mosque=Wh_GetStringSetting(L"General.Mosque");
  if(mosque){s.mosque=mosque;Wh_FreeStringSetting(mosque);}
-  PCWSTR theme=Wh_GetStringSetting(L"Theme");
+  PCWSTR theme=Wh_GetStringSetting(L"General.Theme");
   if(theme){s.theme=theme;Wh_FreeStringSetting(theme);}
- s.refreshHours=Wh_GetIntSetting(L"RefreshHours");
+ s.refreshHours=Wh_GetIntSetting(L"AdvancedCustomization.ModSettingsAdvanced.RefreshHours");
  if(s.refreshHours<1||s.refreshHours>168)s.refreshHours=24;
- s.showNextPrayer=Wh_GetIntSetting(L"ShowNextPrayer")!=0;
- s.showCountdown=Wh_GetIntSetting(L"ShowCountdown")!=0;
- s.enablePopup=Wh_GetIntSetting(L"EnablePopup")!=0;
+ s.showNextPrayer=Wh_GetIntSetting(L"Display.ShowNextPrayer")!=0;
+ s.showCountdown=Wh_GetIntSetting(L"Display.ShowCountdown")!=0;
+ s.enablePopup=Wh_GetIntSetting(L"Display.EnablePopup")!=0;
  return s;
 }
 
@@ -322,58 +281,48 @@ static void ApplyUpdaterSettings(const SettingsSnapshot& s) {
 }
 
 static HWND g_window=nullptr, g_popup=nullptr;
-
 static bool g_lastMouseDown=false;
 static bool g_showNextPrayer=true, g_showCountdown=true, g_enablePopup=true;
-
 static std::wstring g_mosqueName=L"Mosque", g_hijriDate=L"";
-
 static constexpr wchar_t kPopupClass[]=L"EmberveilMawaqitPrayerPopup";
-
 static HANDLE g_thread=nullptr;
-
 static DWORD g_threadId=0;
-
 static int g_width=220,g_x=0,g_y=0,g_trayGap=8;
-
 static int g_pillHeight=26,g_cornerRadius=13,g_pillPadding=12;
-
 static int g_fontSize=15;
-
 static constexpr wchar_t kClass[]=L"EmberveilMawaqitLiveWindow";
-
 struct Prayer { std::wstring name; int minute; };
-
 static const wchar_t* kNames[]={L"Fajr",L"Dhuhr",L"Asr",L"Maghrib",L"Isha"};
-
 static std::wstring g_label=L"Loading schedule",g_countdown=L"--:--";
-
 static std::wstring g_loadedDate;
-
 static std::vector<Prayer> g_today,g_tomorrow;
-
 static COLORREF Hex(unsigned int c){return RGB((c>>16)&255,(c>>8)&255,c&255);}
 
 struct ThemePalette {
  COLORREF pillBackground, pillText, pillSeparator, pillCountdown;
  COLORREF popupBackground, popupBorder, popupText, popupMuted, popupRule, popupFooter;
 };
+
 static ThemePalette g_palette={
  Hex(0x211E32),Hex(0xF5E6C8),Hex(0xB8A98A),Hex(0xFFBC5E),
  Hex(0x1D1D2D),Hex(0x3B3B58),Hex(0xD3D0E8),Hex(0xB8B3D1),Hex(0x424158),Hex(0xA29DBB)
 };
+
 static ThemePalette EmberveilPalette(){return {
  Hex(0x211E32),Hex(0xF5E6C8),Hex(0xB8A98A),Hex(0xFFBC5E),
  Hex(0x1D1D2D),Hex(0x3B3B58),Hex(0xD3D0E8),Hex(0xB8B3D1),Hex(0x424158),Hex(0xA29DBB)
 };}
+
 static ThemePalette TraditionalPalette(){return {
  Hex(0x123D34),Hex(0xF5EAD3),Hex(0xC9B789),Hex(0xE4C784),
  Hex(0x102F29),Hex(0x527361),Hex(0xF5EAD3),Hex(0xC9B789),Hex(0x527361),Hex(0xE4C784)
 };}
+
 static ThemePalette CatppuccinMochaPalette(){return {
  Hex(0x211E32),Hex(0xCDD6F4),Hex(0xB4BEFE),Hex(0xCFA1FF),
  Hex(0x302D47),Hex(0x58536F),Hex(0xCDD6F4),Hex(0xA6ADC8),Hex(0x58536F),Hex(0xB4BEFE)
 };}
+
 static bool WindowsLightMode(){
  DWORD value=0,bytes=sizeof(value);
  HKEY key=nullptr;
@@ -381,6 +330,7 @@ static bool WindowsLightMode(){
  LONG result=RegQueryValueExW(key,L"AppsUseLightTheme",nullptr,nullptr,reinterpret_cast<BYTE*>(&value),&bytes);
  RegCloseKey(key);return result==ERROR_SUCCESS && value!=0;
 }
+
 static ThemePalette SystemPalette(){
  bool light=WindowsLightMode();
  COLORREF accent=GetSysColor(COLOR_HIGHLIGHT);
@@ -389,6 +339,7 @@ static ThemePalette SystemPalette(){
  return {Hex(0x292929),Hex(0xF4F4F4),Hex(0xB8B8B8),accent,
  Hex(0x202020),Hex(0x505050),Hex(0xF4F4F4),Hex(0xB8B8B8),Hex(0x505050),accent};
 }
+
 static COLORREF ParseHexColor(const std::wstring& s,COLORREF fallback){
  size_t i=(s.size()==7 && s[0]==L'#')?1:0;
  if(s.size()-i!=6)return fallback;
@@ -402,31 +353,33 @@ static COLORREF ParseHexColor(const std::wstring& s,COLORREF fallback){
  }
  return Hex(value);
 }
+
 static std::wstring StringSetting(PCWSTR name){
  PCWSTR p=Wh_GetStringSetting(name);
  if(!p)return L"";
  std::wstring result=p;Wh_FreeStringSetting(p);return result;
 }
+
 static ThemePalette ReadPalette(const std::wstring& theme){
  if(theme==L"traditional")return TraditionalPalette();
  if(theme==L"catppuccin")return CatppuccinMochaPalette();
  if(theme==L"system")return SystemPalette();
  ThemePalette p=EmberveilPalette();
  if(theme!=L"custom")return p;
- p.pillBackground=ParseHexColor(StringSetting(L"CustomPillBackground"),p.pillBackground);
- p.pillText=ParseHexColor(StringSetting(L"CustomPillText"),p.pillText);
- p.pillSeparator=ParseHexColor(StringSetting(L"CustomPillSeparator"),p.pillSeparator);
- p.pillCountdown=ParseHexColor(StringSetting(L"CustomPillCountdown"),p.pillCountdown);
- p.popupBackground=ParseHexColor(StringSetting(L"CustomPopupBackground"),p.popupBackground);
- p.popupBorder=ParseHexColor(StringSetting(L"CustomPopupBorder"),p.popupBorder);
- p.popupText=ParseHexColor(StringSetting(L"CustomPopupText"),p.popupText);
- p.popupMuted=ParseHexColor(StringSetting(L"CustomPopupMuted"),p.popupMuted);
- p.popupRule=ParseHexColor(StringSetting(L"CustomPopupRule"),p.popupRule);
- p.popupFooter=ParseHexColor(StringSetting(L"CustomPopupFooter"),p.popupFooter);
+ p.pillBackground=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPillBackground"),p.pillBackground);
+ p.pillText=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPillText"),p.pillText);
+ p.pillSeparator=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPillSeparator"),p.pillSeparator);
+ p.pillCountdown=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPillCountdown"),p.pillCountdown);
+ p.popupBackground=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPopupBackground"),p.popupBackground);
+ p.popupBorder=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPopupBorder"),p.popupBorder);
+ p.popupText=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPopupText"),p.popupText);
+ p.popupMuted=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPopupMuted"),p.popupMuted);
+ p.popupRule=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPopupRule"),p.popupRule);
+ p.popupFooter=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPopupFooter"),p.popupFooter);
  return p;
 }
-static std::wstring g_theme=L"emberveil";
 
+static std::wstring g_theme=L"emberveil";
 static std::wstring DateKey(const SYSTEMTIME& t){wchar_t b[16];swprintf(b,16,L"%04u-%02u-%02u",t.wYear,t.wMonth,t.wDay);return b;}
 
 static std::wstring CachePath(){
@@ -442,7 +395,6 @@ static std::wstring Utf8ToWide(const std::string& s) {
  MultiByteToWideChar(CP_UTF8,0,s.data(),(int)s.size(),&result[0],n);
  return result;
 }
-
 // Minimal JSON string reader for the two fields written by our trusted updater.
 // Handles standard JSON escapes and Unicode escapes, including surrogate pairs.
 
