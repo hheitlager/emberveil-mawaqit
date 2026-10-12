@@ -2,7 +2,7 @@
 // @id windhawk-mawaqit
 // @name Mawaqit Prayer Clock
 // @description Mawaqit prayer clock for the Windows 11 taskbar. Displays the upcoming prayer, a live countdown, and a clickable prayer schedule.
-// @version 0.6.2.8
+// @version 0.6.3
 // @author Sensei
 // @github https://github.com/hheitlager
 // @include explorer.exe
@@ -113,23 +113,26 @@ with or endorsed by Mawaqit.
   $description: "Custom theme only. Hex color (#RRGGBB) for the countdown summary at the bottom."
 - Width: 220
   $name: Layout - Widget width (px)
-  $description: "Width of the taskbar pill (180-400 px). Changes apply live."
+  $description: "Width of the taskbar pill (180-400 px)."
 - OffsetX: 0
   $name: Layout - Horizontal offset (px)
   $description: "Fine-tune position left (negative) or right (positive)."
 - OffsetY: 0
   $name: Layout - Vertical offset (px)
   $description: "Fine-tune position up (negative) or down (positive)."
-- TrayGap: 8
+- TrayGap: 0
   $name: Layout - Gap before system tray (px)
   $description: "Space between the taskbar pill and system tray (0-100 px)."
 - PillHeight: 26
   $name: Layout - Pill height (px)
   $description: "Height of the painted pill (12-30 px); the widget window remains 30 px high."
+- FontSize: 15
+  $name: Layout - Font size (px)
+  $description: "Taskbar pill text size (10-24 px). Default 15 preserves the original appearance."
 - CornerRadius: 13
   $name: Layout - Corner radius (px)
   $description: "Corner radius; clamped to half the pill height. Smaller values give squarer corners."
-- PillPadding: 12
+- PillPadding: 0
   $name: Advanced - Minimum left text inset (px)
   $description: "Only affects text if its centered position would be closer than this inset. Usually has no visible effect; retained for compatibility."
 */
@@ -257,6 +260,7 @@ static constexpr UINT WM_EMBERVEIL_APPLY_SETTINGS=WM_APP+43;
 struct SettingsSnapshot {
  int width=220, x=0, y=0, trayGap=8;
  int pillHeight=26, cornerRadius=13, pillPadding=12;
+ int fontSize=15;
  int refreshHours=24;
  std::wstring mosque=L"masjidomar";
  std::wstring theme=L"emberveil";
@@ -269,6 +273,8 @@ static SettingsSnapshot ReadSettings() {
  s.x=Wh_GetIntSetting(L"OffsetX");s.y=Wh_GetIntSetting(L"OffsetY");
  s.trayGap=Wh_GetIntSetting(L"TrayGap");if(s.trayGap<0||s.trayGap>100)s.trayGap=8;
  s.pillHeight=Wh_GetIntSetting(L"PillHeight");if(s.pillHeight<12||s.pillHeight>30)s.pillHeight=26;
+ s.fontSize=Wh_GetIntSetting(L"FontSize");
+ if(s.fontSize<10||s.fontSize>24)s.fontSize=15;
  s.cornerRadius=Wh_GetIntSetting(L"CornerRadius");if(s.cornerRadius<0||s.cornerRadius>30)s.cornerRadius=13;
  s.pillPadding=Wh_GetIntSetting(L"PillPadding");if(s.pillPadding<0||s.pillPadding>40)s.pillPadding=12;
  PCWSTR mosque=Wh_GetStringSetting(L"Mosque");
@@ -309,6 +315,8 @@ static DWORD g_threadId=0;
 static int g_width=220,g_x=0,g_y=0,g_trayGap=8;
 
 static int g_pillHeight=26,g_cornerRadius=13,g_pillPadding=12;
+
+static int g_fontSize=15;
 
 static constexpr wchar_t kClass[]=L"EmberveilMawaqitLiveWindow";
 
@@ -650,6 +658,7 @@ static LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
   if(!s)return 0;
   g_width=s->width;g_x=s->x;g_y=s->y;g_trayGap=s->trayGap;
   g_pillHeight=s->pillHeight;g_cornerRadius=s->cornerRadius;
+  g_fontSize=s->fontSize;
   g_pillPadding=s->pillPadding;
   g_theme=s->theme;
   g_showNextPrayer=s->showNextPrayer;
@@ -690,7 +699,13 @@ static LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
   if(radius>0)RoundRect(mem,pill.left,pill.top,pill.right,pill.bottom,radius*2,radius*2);
   else Rectangle(mem,pill.left,pill.top,pill.right,pill.bottom);
   SelectObject(mem,oldPen);SelectObject(mem,oldBrush);DeleteObject(bg);
-  HFONT font=CreateFontW(-15,0,0,0,FW_MEDIUM,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH,L"Segoe UI");
+  HFONT font=CreateFontW(
+    -g_fontSize,0,0,0,FW_MEDIUM,
+    FALSE,FALSE,FALSE,
+    DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,
+    CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,
+    DEFAULT_PITCH,L"Segoe UI"
+  );
   HGDIOBJ oldfont=SelectObject(mem,font);SetBkMode(mem,TRANSPARENT);
   // Center the enabled text elements as one group; omit the separator unless both are shown.
   const bool showLabel=g_showNextPrayer;
@@ -773,6 +788,7 @@ BOOL Wh_ModInit(){
  g_width=settings.width;g_x=settings.x;g_y=settings.y;
  g_trayGap=settings.trayGap;g_pillHeight=settings.pillHeight;
  g_cornerRadius=settings.cornerRadius;g_pillPadding=settings.pillPadding;
+ g_fontSize=settings.fontSize;
  g_theme=settings.theme;
  g_showNextPrayer=settings.showNextPrayer;
  g_showCountdown=settings.showCountdown;
