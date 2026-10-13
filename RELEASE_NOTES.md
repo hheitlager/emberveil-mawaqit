@@ -1,3 +1,43 @@
+# Mawaqit Prayer Clock v0.6.8
+
+**Selectable taskbar positions — release candidate**
+
+This update adds five selectable positions for the native XAML prayer clock, with live switching directly from the **General → Taskbar position** setting. The prayer schedule updater, themes, popup, and existing customization options remain available.
+
+### Highlights
+
+- **Before system tray** — the default, with the clock participating in the tray layout.
+- **After system tray** — places the clock beyond the tray.
+- **Before taskbar icons** — anchors the clock before application buttons.
+- **After taskbar icons** — follows the application buttons as their position changes.
+- **Dynamic center (experimental)** — starts at the physical taskbar center and moves right when application buttons approach.
+- Switch positions without restarting Windows Explorer.
+- Taskbar position is a **General** setting, not hidden under advanced customization.
+
+### Known limitation
+
+**Dynamic center (experimental)** is an overlay and does not reserve space in the application-button layout. Windows may not automatically combine or resize taskbar buttons to accommodate it. On crowded taskbars, the clock can overlap other elements. Use one of the four anchored positions if you prefer native layout spacing.
+
+### Upgrade notes
+
+The new setting is `General.Position`, defaulting to `before-tray`. The four other choices are `after-tray`, `before-icons`, `after-icons`, and `center`. Existing mosque, theme, display, layout, and custom-color settings remain in their current groups. If you use other taskbar customization mods, verify the clock placement after updating.
+
+### Validation
+
+Author-tested: all five positions, live position switching, dynamic-center movement, and a subsequent cleanup regression pass. This does not establish compatibility with every Windows 11 build or combination of taskbar mods.
+
+### Installation
+
+Install Windhawk, create or update the mod using `src/windhawk-mawaqit.wh.cpp`, compile and enable it, then configure your mosque. See [README.md](README.md) and [CONFIGURATION.md](CONFIGURATION.md).
+
+### Notes
+
+- Source release; no precompiled binary.
+- Unofficial community project, not affiliated with Mawaqit.
+- Schedule retrieval depends on Mawaqit's website format and availability.
+
+---
+
 # Mawaqit Prayer Clock v0.6.7
 
 **Native XAML taskbar integration — release candidate**

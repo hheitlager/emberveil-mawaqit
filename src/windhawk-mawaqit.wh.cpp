@@ -2,7 +2,7 @@
 // @id windhawk-mawaqit
 // @name Mawaqit Prayer Clock
 // @description Mawaqit prayer clock with live countdown, prayer schedule popup, and customizable themes.
-// @version 0.6.7
+// @version 0.6.8
 // @author HHeitlager
 // @github https://github.com/hheitlager
 // @include explorer.exe
@@ -22,7 +22,8 @@ Mawaqit prayer clock with live countdown, prayer schedule popup, and customizabl
 - 13 appearance themes, including Windows / System, Traditional Islamic, Catppuccin Mocha, Emberveil, Dracula, Nord, Gruvbox Dark, Tokyo Night, Solarized Dark and Light, and Custom
 - Independent custom colors for the pill and popup
 - Visibility switches for the prayer label, countdown, and popup
-- Native XAML taskbar integration with reserved layout space
+- Five selectable taskbar positions, including experimental dynamic centering
+- Native XAML taskbar integration with reserved layout space for anchored positions
 - Automatic or manual clock height, four-sided margins and padding, tray gap, corner radius, and font size
 - Background schedule updates through native WinHTTP, with configurable refresh interval
 - Live settings updates without restarting Explorer
@@ -84,6 +85,15 @@ with or endorsed by Mawaqit.
     - solarized-dark: Solarized Dark
     - solarized-light: Solarized Light
     - custom: Custom
+  - Position: before-tray
+    $name: Taskbar position
+    $description: Choose where the clock appears on the taskbar. Dynamic center may overlap applications when the taskbar is full.
+    $options:
+    - before-tray: Before system tray
+    - after-tray: After system tray
+    - before-icons: Before taskbar icons
+    - after-icons: After taskbar icons
+    - center: Dynamic center (experimental)
   $name: General
 - Display:
   - ShowNextPrayer: true
@@ -200,9 +210,6 @@ using winrt::Windows::UI::Xaml::Controls::StackPanel;
 
 enum class Anchor {
     BeforeIcons,
-    BeforeOmni,
-    BeforeClock,
-    AfterClock,
     AfterShowDesktop,
 };
 
@@ -298,15 +305,6 @@ inline bool ResolveSlot(Panel const& parent, Anchor anchor, int& slot) {
     wchar_t const* referenceName = nullptr;
     bool after = false;
     switch (anchor) {
-        case Anchor::BeforeOmni:
-            referenceName = L"ControlCenterButton";
-            break;
-        case Anchor::BeforeClock:
-            referenceName = L"NotificationCenterButton";
-            break;
-        case Anchor::AfterClock:
-            referenceName = L"ShowDesktopStack";
-            break;
         case Anchor::AfterShowDesktop:
             referenceName = L"ShowDesktopStack";
             after = true;
@@ -800,7 +798,7 @@ static bool Run(const std::wstring& mosque) {
  std::wstring slug;std::wstring path=normalize(mosque,slug);std::string html=fetch(path);std::string json=extract(html);Parser parser{json};J root=parser.value();
  const J& cal=root.key("calendar");if(cal.kind!=J::Arr||cal.a.size()!=12)fail("Calendar must have 12 months");
  const J& nameVal=root.key("name");const J& tzVal=root.key("timezone");if(tzVal.kind!=J::Str||tzVal.s.empty())fail("Missing timezone");std::string name=nameVal.kind==J::Str&&!nameVal.s.empty()?nameVal.s:narrow(slug);
- // Stage 1 uses the local Windows date; matching the mosque timezone is handled in stage 2.
+ // Use the local Windows date for the cached schedule year.
  SYSTEMTIME now;GetLocalTime(&now);int year=now.wYear;std::ostringstream sched;sched<<"# Emberveil Mawaqit schedule v1\n# Source: https://mawaqit.net"<<narrow(path)<<"\n# Year: "<<year<<"\n";
  for(int m=1;m<=12;m++){const J& month=cal.idx(m-1);if(month.kind!=J::Obj)fail("Month is not an object");for(int d=1;d<=days(year,m);d++){
   const J& entry=month.key(std::to_string(d));if(entry.kind!=J::Arr||entry.a.size()!=6)fail("Invalid calendar day");
@@ -964,6 +962,7 @@ static Insets ParseInsets(const std::wstring& value,int minVal,int maxVal){
 static int g_width=200,g_pillHeight=0,g_trayGap=5,g_cornerRadius=13,g_fontSize=15;
 static Insets g_margins{},g_padding{};
 static std::wstring g_theme=L"system";
+static std::wstring g_position=L"before-tray";
 struct PillPalette { winrt::Windows::UI::Color background,foreground,countdown,separator; };
 static winrt::Windows::UI::Color Rgb(unsigned c) {
  return winrt::Windows::UI::Color{255,(uint8_t)(c>>16),(uint8_t)(c>>8),(uint8_t)c};
@@ -1284,13 +1283,148 @@ static FrameworkElement FindNamed(FrameworkElement const& root, wchar_t const* n
     return nullptr;
 }
 
-static Panel LiveTray() {
+static FrameworkElement LiveTaskbarRoot() {
     HWND wnd=taskwin::FindCurrentProcessTaskbarWnd();
     if(!wnd) return nullptr;
     auto xamlRoot=taskxaml::GetTaskbarXamlRoot(wnd);
-    if(!xamlRoot) return nullptr;
-    auto root=xamlRoot.Content().try_as<FrameworkElement>();
-    return FindNamed(root,L"SystemTrayFrameGrid").try_as<Panel>();
+    return xamlRoot ? xamlRoot.Content().try_as<FrameworkElement>() : nullptr;
+}
+
+static Panel LiveTray() {
+    auto root=LiveTaskbarRoot();
+    return root ? FindNamed(root,L"SystemTrayFrameGrid").try_as<Panel>() : nullptr;
+}
+
+// Locate the application repeater's actual parent for icon-area insertion.
+// Do not substitute a tray slot when the XAML hierarchy differs.
+static bool FindApplicationRepeater(FrameworkElement const& root,
+                                    Panel& parent, FrameworkElement& repeater,
+                                    int depth=0) {
+    if(!root || depth>24) return false;
+    // Windows 11 taskbar applications are hosted by TaskbarFrameRepeater.
+    // Only lease beside a direct child of a supported panel.
+    if(auto panel=root.try_as<Panel>()) {
+        for(auto const& child:panel.Children()) {
+            auto element=child.try_as<FrameworkElement>();
+            if(element && element.Name()==L"TaskbarFrameRepeater" &&
+               slot::Classify(panel)!=slot::Kind::Unsupported) {
+                parent=panel;
+                repeater=element;
+                return true;
+            }
+        }
+    }
+    int count=VisualTreeHelper::GetChildrenCount(root);
+    for(int i=0;i<count;i++) {
+        auto child=VisualTreeHelper::GetChild(root,i).try_as<FrameworkElement>();
+        if(child && FindApplicationRepeater(child,parent,repeater,depth+1))
+            return true;
+    }
+    return false;
+}
+
+// Center uses a full-width taskbar root Grid overlay rather than a leased
+// application/tray slot. Only accept a root that actually spans the taskbar;
+// otherwise skip rather than accidentally center inside a small subpanel.
+static Panel ResolveCenterParent() {
+    auto root=LiveTaskbarRoot();
+    auto grid=root.try_as<Grid>();
+    HWND wnd=taskwin::FindCurrentProcessTaskbarWnd();
+    RECT rect{};
+    if(!grid || !wnd || !GetWindowRect(wnd,&rect)) return nullptr;
+    double dpi=(double)GetDpiForWindow(wnd);
+    double taskbarWidth=(rect.right-rect.left)*96.0/dpi;
+    if(taskbarWidth<=0 || grid.ActualWidth()<taskbarWidth*0.75) {
+        Wh_Log(L"[Mawaqit] Center skipped: root Grid width %.1f vs taskbar %.1f DIP",
+               grid.ActualWidth(),taskbarWidth);
+        return nullptr;
+    }
+    return grid;
+}
+
+static Panel ResolvePositionParent(int& slotIndex) {
+    slotIndex=-1;
+    if(g_position==L"center") {
+        auto center=ResolveCenterParent();
+        if(center) slotIndex=0;
+        return center;
+    }
+    if(g_position==L"before-tray") {
+        auto tray=LiveTray();
+        if(tray && slot::ResolveSlot(tray,slot::Anchor::BeforeIcons,slotIndex)) return tray;
+        return nullptr;
+    }
+    if(g_position==L"after-tray") {
+        auto tray=LiveTray();
+        if(!tray) return nullptr;
+        if(slot::ResolveSlot(tray,slot::Anchor::AfterShowDesktop,slotIndex)) return tray;
+        Wh_Log(L"[Mawaqit] After-tray anchor unavailable; named children: %s",
+               slot::DescribeChildren(tray).c_str());
+        return nullptr;
+    }
+    auto root=LiveTaskbarRoot();
+    Panel parent{nullptr};
+    FrameworkElement repeater{nullptr};
+    if(root && FindApplicationRepeater(root,parent,repeater)) {
+        auto kind=slot::Classify(parent);
+        if(kind==slot::Kind::Columns) {
+            int column=Grid::GetColumn(repeater);
+            int span=std::max(1,Grid::GetColumnSpan(repeater));
+            slotIndex=column+(g_position==L"after-icons"?span:0);
+        } else if(kind==slot::Kind::Order) {
+            int index=slot::IndexOfChild(parent,repeater);
+            if(index>=0) slotIndex=index+(g_position==L"after-icons"?1:0);
+        }
+        Wh_Log(L"[Mawaqit] Icon anchor: parent=%s repeater=%s slot=%d children=%s",
+               slot::ClassName(parent).c_str(),slot::ClassName(repeater).c_str(),
+               slotIndex,slot::DescribeChildren(parent).c_str());
+        if(slotIndex>=0) return parent;
+    }
+    Wh_Log(L"[Mawaqit] Icon position '%s' unavailable: no supported TaskbarFrameRepeater parent; insertion skipped",
+           g_position.c_str());
+    return nullptr;
+}
+
+// Keep the overlay centered until the live application repeater reaches it,
+// then translate right, stopping before the tray. Windows icon layout and
+// overflow behavior remain unchanged.
+static void UpdateDynamicCenterOnUiThread() {
+    if(g_position!=L"center" || !g_pill) return;
+    auto root=LiveTaskbarRoot();
+    auto grid=root.try_as<Grid>();
+    auto tray=LiveTray();
+    if(!grid || !tray || grid.ActualWidth()<=0) return;
+    Panel iconsParent{nullptr};
+    FrameworkElement repeater{nullptr};
+    if(!FindApplicationRepeater(root,iconsParent,repeater) || !repeater) return;
+    try {
+        auto point=winrt::Windows::Foundation::Point{0,0};
+        auto appOrigin=repeater.TransformToVisual(grid).TransformPoint(point);
+        auto trayOrigin=tray.TransformToVisual(grid).TransformPoint(point);
+        double pillWidth=g_pill.ActualWidth();
+        if(pillWidth<=0) pillWidth=g_pill.Width();
+        double centeredLeft=(grid.ActualWidth()-pillWidth)/2.0;
+        double appRight=appOrigin.X+repeater.ActualWidth();
+        double gap=5.0;
+        double maximumLeft=trayOrigin.X-pillWidth-gap;
+        double wantedLeft=std::max(centeredLeft,appRight+gap);
+        // If the available region is exhausted, hide rather than overlap the
+        // system tray or the application buttons. This does not force overflow.
+        bool room=maximumLeft>=centeredLeft && wantedLeft<=maximumLeft;
+        g_pill.Visibility(room?Visibility::Visible:Visibility::Collapsed);
+        double left=std::min(wantedLeft,maximumLeft);
+        if(room) {
+            auto translation=g_pill.RenderTransform().try_as<TranslateTransform>();
+            if(!translation) {
+                translation=TranslateTransform();
+                g_pill.RenderTransform(translation);
+            }
+            translation.X(left-centeredLeft);
+        }
+    } catch(...) {
+        // Do not disturb the stable anchored positions on unsupported trees.
+        Wh_Log(L"[Mawaqit] Dynamic center bounds unavailable; retaining last placement");
+    }
 }
 
 static void RemoveOnUiThread() {
@@ -1314,8 +1448,9 @@ static void RemoveOnUiThread() {
 
 static void InsertOnUiThread() {
     if(g_stopping.load()) return;
-    auto parent=LiveTray();
-    if(!parent){Wh_Log(L"[Mawaqit] XAML tray not ready");return;}
+    int slotIndex=-1;
+    auto parent=ResolvePositionParent(slotIndex);
+    if(!parent){Wh_Log(L"[Mawaqit] Position parent unavailable: %s",g_position.c_str());return;}
     if(slot::Classify(parent)==slot::Kind::Unsupported) {
         Wh_Log(L"[Mawaqit] Unsupported tray panel: %s",slot::ClassName(parent).c_str());return;
     }
@@ -1324,10 +1459,7 @@ static void InsertOnUiThread() {
         auto fe=child.try_as<FrameworkElement>();
         if(fe && fe.Name()==kSlotName) {Wh_Log(L"[Mawaqit] Slot already exists");return;}
     }
-    // Test 5A intentionally uses the beginning of the tray's native layout.
-    // This is not the old after-tray or Show Desktop placement experiment.
-    int slotIndex=0;
-    if(!slot::ResolveSlot(parent,slot::Anchor::BeforeIcons,slotIndex)) return;
+    // Slot is resolved from the selected position before creating XAML content.
     double dpi=96.0;
     if(auto wnd=taskwin::FindCurrentProcessTaskbarWnd()) dpi=(double)GetDpiForWindow(wnd);
     double widthDip=(double)g_width*96.0/dpi;
@@ -1356,7 +1488,7 @@ static void InsertOnUiThread() {
                          (double)g_padding.bottom*96.0/dpi});
     pillSurface.HorizontalAlignment(HorizontalAlignment::Stretch);
     pillSurface.VerticalAlignment(VerticalAlignment::Stretch);
-    // Test 5B: XAML text controls in a reserved native taskbar layout slot.
+    // XAML text controls in the native taskbar layout.
     StackPanel content;
     content.Orientation(Orientation::Horizontal);
     content.HorizontalAlignment(HorizontalAlignment::Center);
@@ -1392,14 +1524,30 @@ static void InsertOnUiThread() {
     content.Children().Append(countdown);
     pillSurface.Child(content);
     box.Children().Append(pillSurface);
-    if(!slot::AcquireAt(parent,slotIndex,kLeaseName,g_lease)) {
-        Wh_Log(L"[Mawaqit] Lease acquisition failed");return;
+    if(g_position==L"center") {
+        // A full-width Grid child is horizontally centered, then dynamically shifted.
+        // It owns no grid column and must not change existing taskbar layout.
+        // The pill remains the only hit-testable part of this overlay.
+        auto grid=parent.try_as<Grid>();
+        if(!grid) return;
+        Grid::SetColumn(box,0);
+        Grid::SetColumnSpan(box,std::max(1,(int)grid.ColumnDefinitions().Size()));
+        Grid::SetRow(box,0);
+        Grid::SetRowSpan(box,std::max(1,(int)grid.RowDefinitions().Size()));
+        box.HorizontalAlignment(HorizontalAlignment::Center);
+        box.VerticalAlignment(VerticalAlignment::Center);
+        Canvas::SetZIndex(box,100);
+        grid.Children().Append(box);
+    } else {
+        if(!slot::AcquireAt(parent,slotIndex,kLeaseName,g_lease)) {
+            Wh_Log(L"[Mawaqit] Lease acquisition failed");return;
+        }
+        bool placed=false;
+        try {placed=slot::PlaceChild(parent,g_lease,box);} catch(...) {
+            slot::Release(parent,g_lease);throw;
+        }
+        if(!placed) {slot::Release(parent,g_lease);return;}
     }
-    bool placed=false;
-    try {placed=slot::PlaceChild(parent,g_lease,box);} catch(...) {
-        slot::Release(parent,g_lease);throw;
-    }
-    if(!placed) {slot::Release(parent,g_lease);return;}
     g_placeholder=box;
     g_pill=box;
     g_tapToken=box.Tapped([](auto const&,auto const&){TogglePrayerPopup();});
@@ -1409,10 +1557,11 @@ static void InsertOnUiThread() {
     Wh_Log(L"[Mawaqit] Text controls attached, prayer=%d countdown=%d",
         g_prayerText?1:0,g_countdownText?1:0);
     g_parent=parent;
+    UpdateDynamicCenterOnUiThread();
     UpdateCountdown();
     prayer.Text(g_showNext?g_label:L"");
     countdown.Text(g_showCountdown?g_countdown:L"");
-    Wh_Log(L"[Mawaqit] Native XAML slot inserted: %d physical px, %.1f DIP, DPI %.0f",g_width,widthDip,dpi);
+    Wh_Log(L"[Mawaqit] Native XAML position %s inserted: %d physical px, %.1f DIP, DPI %.0f",g_position.c_str(),g_width,widthDip,dpi);
 }
 
 static void LogException(PCWSTR context) {
@@ -1447,6 +1596,7 @@ static void UpdateClockOnUiThread() {
     auto countdown=g_countdownText;
     if(prayer)prayer.Text(g_showNext?g_label:L"");
     if(countdown)countdown.Text(g_showCountdown?g_countdown:L"");
+    UpdateDynamicCenterOnUiThread();
 }
 
 // XAML DispatcherTimer did not tick in the taskbar's hosting context on the
@@ -1502,6 +1652,10 @@ static std::wstring ReadSetting(PCWSTR key) {
     return result;
 }
 static void LoadModSettings() {
+    std::wstring position=ReadSetting(L"General.Position");
+    if(position!=L"after-tray" && position!=L"before-icons" &&
+       position!=L"after-icons" && position!=L"center") position=L"before-tray";
+    g_position=position;
     auto theme=ReadSetting(L"General.Theme");
     if(theme!=L"traditional" && theme!=L"catppuccin" && theme!=L"emberveil" &&
        theme!=L"emberveil-midnight" && theme!=L"emerald-mosque" &&

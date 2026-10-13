@@ -2,10 +2,10 @@
 
 Windhawk provides two editors for this mod:
 
-- **Settings:** Mosque, appearance preset, display toggles, and popup auto-close.
+- **Settings:** Mosque, appearance preset, taskbar position, display toggles, and popup auto-close.
 - **Advanced → Mod settings:** The complete JSON settings object, including every color and layout key.
 
-The current v0.6.7 build exposes the layout, refresh, and custom-theme groups in Settings. Their keys can also be edited in Advanced JSON.
+The current v0.6.8 build exposes the layout, refresh, and custom-theme groups in Settings. Their keys can also be edited in Advanced JSON.
 
 ## Editing advanced values
 
@@ -22,6 +22,7 @@ The **Advanced** tab is part of Windhawk; no external configuration file is requ
 {
   "General.Mosque": "al-haram-makkah-saudi-arabia",
   "General.Theme": "catppuccin",
+  "General.Position": "before-tray",
   "Display.ShowNextPrayer": 1,
   "Display.ShowCountdown": 1,
   "Display.EnablePopup": 1,
@@ -54,12 +55,13 @@ This is a **sample configuration**, not the mod's built-in defaults. The setting
 | Setting | Purpose | Valid values / behavior |
 |---|---|---|
 | `Mosque` | Mawaqit mosque identifier or URL | String |
+| `Position` (**Taskbar position**) | Where the clock appears | `before-tray` (default), `after-tray`, `before-icons`, `after-icons`, `center` (experimental) |
 | `RefreshHours` | Schedule refresh interval | 1–168 hours; default 24 |
 | `Theme` | Built-in theme or custom palette | `system`, `traditional`, `catppuccin`, `emberveil`, `emberveil-midnight`, `emerald-mosque`, `dracula`, `nord`, `gruvbox`, `tokyo-night`, `solarized-dark`, `solarized-light`, `custom` |
 | `ShowNextPrayer` | Prayer label and time | 0 or 1 |
 | `ShowCountdown` | Live countdown | 0 or 1 |
 | `EnablePopup` | Clickable prayer schedule | 0 or 1 |
-| `PopupAutoCloseSeconds` | Dismiss popup automatically | 0 = disabled (default); 1–300 seconds |
+| `PopupAutoCloseSeconds` | Dismiss popup automatically | 0 = disabled; 1–300 seconds; default 5 |
 | `CustomPillBackground` | Pill background | `#RRGGBB` |
 | `CustomPillText` | Prayer label | `#RRGGBB` |
 | `CustomPillSeparator` | Separator dot | `#RRGGBB` |
@@ -70,13 +72,27 @@ This is a **sample configuration**, not the mod's built-in defaults. The setting
 | `CustomPopupMuted` | Popup secondary text | `#RRGGBB` |
 | `CustomPopupRule` | Popup divider lines | `#RRGGBB` |
 | `CustomPopupFooter` | Popup footer | `#RRGGBB` |
-| `Width` | Clock width | 180–400 px; default 220 |
+| `Width` | Clock width | 180–400 px; default 0 (uses 200 px fallback) |
 | `PillHeight` (**Height**) | Clock height | `0` = automatic; 1–100 px = manual override; default 0 |
 | `Margins` (**Margin**) | Moves the entire clock relative to its automatic position | Four comma-separated signed integers `left, top, right, bottom`; each −100 to 100 px; default `"0, 0, 0, 0"` |
 | `Padding` | Reserves space between the clock edges and text, without moving or resizing the clock | Four comma-separated integers `left, top, right, bottom`; each 0–100 px; default `"0, 0, 0, 0"` |
-| `TrayGap` (**Gap before system tray**) | Horizontal gap before the tray | 0–100 px; default 0 |
+| `TrayGap` (**Gap before system tray**) | Horizontal gap before the tray | 0–100 px; default 5 |
 | `CornerRadius` (**Corner radius**) | Corner roundness | 0–30 px; capped to half the painted width/height; default 13 |
 | `FontSize` (**Fontsize**) | Clock text size | 10–24 px; default 15 |
+
+## Taskbar position
+
+The **Taskbar position** dropdown is available under **General**; advanced customization does not need to be enabled. Positions can be changed live without restarting Explorer.
+
+| Position | Setting value | Behavior |
+|---|---|---|
+| Before system tray | `before-tray` | Clock sits immediately before the system tray in the native taskbar layout (default). |
+| After system tray | `after-tray` | Clock sits after the tray, following the Show Desktop area. |
+| Before taskbar icons | `before-icons` | Clock is anchored before the application icons. |
+| After taskbar icons | `after-icons` | Clock is anchored after the application icons and follows their position as the taskbar changes. |
+| Dynamic center (experimental) | `center` | Starts at the physical taskbar center and shifts right when application icons approach it. This overlay does **not** reserve application layout space; Windows might not combine or resize buttons to make room, and overlaps can occur on crowded taskbars. |
+
+If a position is unavailable due to a different Windows taskbar layout or another taskbar mod, the clock might not appear at that location.
 
 ## Layout examples
 
@@ -89,6 +105,6 @@ The names in parentheses in the reference table are the labels shown in Windhawk
 
 Margin affects **position only**; padding affects the **text area only**. Neither changes the clock's width or height. Invalid four-value strings revert to zero insets. The old `OffsetX`, `OffsetY`, and `PillPadding` keys are no longer used by v0.6.6; update any older saved configuration to use `Margins` and `Padding`.
 
-**Custom theme:** To use custom colors, set `"Theme": "custom"` in Advanced JSON. Selecting a built-in preset ignores the custom color values without deleting them. **Custom** is available in the regular appearance dropdown.
+**Custom theme:** To use custom colors, set `"General.Theme": "custom"` in Advanced JSON. Selecting a built-in preset ignores the custom color values without deleting them. **Custom** is available in the regular appearance dropdown.
 
 **Compatibility:** Tested on the author’s Windows 11 setup. Native XAML taskbar layouts can vary across Windows builds and taskbar modifications.

@@ -3,7 +3,7 @@ An unofficial, customizable **Mawaqit prayer clock for the Windows 11 taskbar**,
 
 Displays the upcoming prayer and a live countdown in a taskbar pill, with a clickable prayer-schedule popup. Designed with the **Emberveil** visual style in mind.
 
-> **Release candidate: v0.6.7.** Tested by the project author in their Windows setup; broader compatibility has not yet been established.
+> **Release candidate: v0.6.8.** Tested by the project author in their Windows setup; broader compatibility has not yet been established.
 
 > **Windhawk 2.0 or newer is recommended.** Earlier versions may differ in how advanced settings are presented.
 
@@ -13,6 +13,7 @@ Displays the upcoming prayer and a live countdown in a taskbar pill, with a clic
 - 13 appearance themes: **Windows / System**, **Traditional Islamic**, **Catppuccin Mocha**, **Emberveil**, **Emberveil Midnight**, **Emerald Mosque**, **Dracula**, **Nord**, **Gruvbox Dark**, **Tokyo Night**, **Solarized Dark**, **Solarized Light**, and **Custom**
 - Independent custom colors for the pill and popup
 - Visibility switches for the prayer label, countdown, and popup
+- Five selectable taskbar positions, including experimental dynamic centering
 - Native XAML taskbar slot with reserved space and a live countdown
 - Automatic or manual clock height, four-sided margin and padding, tray gap, and corner radius
 - Background schedule updates through native WinHTTP, with configurable refresh interval
@@ -20,7 +21,7 @@ Displays the upcoming prayer and a live countdown in a taskbar pill, with a clic
 
 ## Screenshots
 
-The screenshots below are from the earlier theme collection; additional v0.6.7 theme screenshots have not yet been added.
+The screenshots below are from the earlier theme collection; additional v0.6.8 theme screenshots have not yet been added.
 Mawaqit Prayer Clock supports multiple appearance themes to match your Windows 11 desktop.
 
 Windows System Default | Traditional Islamic |
@@ -71,11 +72,8 @@ Custom color settings only affect the widget when **Custom** is selected. All th
 
 For a mosque, enter a slug such as `al-haram-makkah-saudi-arabia` or a URL such as `https://mawaqit.net/en/al-haram-makkah-saudi-arabia`. The source defaults to `al-haram-makkah-saudi-arabia`; change it to your own mosque.
 
-## What changed in v0.6.7
-- Native XAML taskbar integration replaces the previous GDI taskbar pill.
-- Eight new theme presets and an optional popup auto-close timer.
-- Safer popup window-class registration and cleanup during mod reloads.
-- Preserved mosque schedule fetching, custom colors, and live settings.
+## What changed in v0.6.8
+- Five selectable taskbar positions, including experimental dynamic centering
 
 ## How schedule updates work
 The mod fetches the configured Mawaqit mosque page over HTTPS and reads schedule data embedded in the page. It caches generated schedule and metadata files under:

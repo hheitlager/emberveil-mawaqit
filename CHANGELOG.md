@@ -1,6 +1,10 @@
 # Changelog
-
 Notable changes to Mawaqit Prayer Clock are documented here.
+
+## [0.6.8] - Selectable taskbar positions
+
+### Added
+- Five selectable taskbar positions, including experimental dynamic centering
 
 ## [0.6.7] — Native XAML taskbar integration and theme expansion
 
