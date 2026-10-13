@@ -1,7 +1,7 @@
 // ==WindhawkMod==
 // @id windhawk-mawaqit
 // @name Mawaqit Prayer Clock
-// @description Native Windows 11 taskbar prayer clock with live countdown, prayer schedule popup, and customizable themes.
+// @description Mawaqit prayer clock with live countdown, prayer schedule popup, and customizable themes.
 // @version 0.6.7
 // @author HHeitlager
 // @github https://github.com/hheitlager
@@ -13,7 +13,7 @@
 // ==WindhawkModReadme==
 /*
 # Mawaqit Prayer Clock
-Mawaqit prayer clock for your taskbar using Windhawk. Displays the upcoming prayer, a live countdown, and a clickable prayer schedule.
+Mawaqit prayer clock with live countdown, prayer schedule popup, and customizable themes.
 
 
 ## Features
@@ -91,37 +91,45 @@ with or endorsed by Mawaqit.
   - ShowCountdown: true
     $name: Show countdown
   - EnablePopup: true
-    $name: Enable prayer schedule popup
-  - PopupAutoCloseSeconds: 0
+    $name: Show popup
+  - PopupAutoCloseSeconds: 5
     $name: Popup auto-close (seconds, 0 = disabled)
-    $description: Automatically dismiss the prayer schedule popup after 1–300 seconds. Opening it again resets the timer.
-  $name: Display
+    $description: Automatically close popup after 1–300 seconds. Opening it again resets the timer.
+  $name: Popup settings
 - AdvancedCustomization:
-  - LayoutSettings:
-    - Width: 220
-      $name: Width
-      $description: Native XAML reserved width, 180–400 px.
-    - PillHeight: 0
-      $name: Height
-      $description: Physical pixels, 0 automatic or 1–100.
-    - Margins: "0, 0, 0, 0"
-      $name: Margin (left, top, right, bottom)
-      $description: Signed pixel offsets, -100 to 100. Does not reserve extra tray space.
-    - Padding: "0, 0, 0, 0"
-      $name: Padding (left, top, right, bottom)
-      $description: Internal text padding, 0–100 px. Does not resize the clock.
-    - TrayGap: 0
-      $name: Gap before system tray
-    - CornerRadius: 13
-      $name: Corner radius
-    - FontSize: 15
-      $name: Fontsize
-    $name: Layout settings
+  - AdvancedOptions: false
+    $name: Show advanced options
+    $description: Show additional settings for updates, layout, and colors.
   - ModSettingsAdvanced:
     - RefreshHours: 24
       $name: Refresh interval (hours)
-      $description: Failed updates retry after one hour.
+      $description: Choose how often the prayer schedule is updated from Mawaqit (1–168 hours).
     $name: Mod settings
+    #! $showIf: {AdvancedOptions: true}
+  - LayoutSettings:
+    - Width: 0
+      $name: Width
+      $description: Choose how wide the clock appears (180–400 px). Values outside this range use 200 px.
+    - PillHeight: 0
+      $name: Height
+      $description: Set to 0 to adjust automatically to the taskbar, or choose a height between 1 and 100 px.
+    - Margins: "0, 0, 0, 0"
+      $name: Margin (left, top, right, bottom)
+      $description: Move the clock left, right, up, or down (−100 to 100 px per side).
+    - Padding: "0, 0, 0, 0"
+      $name: Padding (left, top, right, bottom)
+      $description: Adjust the space between the clock edges and its text (0–100 px per side).
+    - TrayGap: 5
+      $name: Gap before system tray
+      $description: Choose how much space appears between the clock and system tray (0–100 px).
+    - CornerRadius: 13
+      $name: Corner radius
+      $description: Choose how rounded the clock's corners appear (0–30 px). Set to 0 for square corners; higher values create rounder corners.
+    - FontSize: 15
+      $name: Fontsize
+      $description: Adjust the clock's text size (10–24 px). This does not affect the popup.
+    $name: Layout settings
+    #! $showIf: {AdvancedOptions: true}
   - CustomThemeSettings:
     - CustomPillBackground: "#211E32"
       $name: Pill background
@@ -144,6 +152,7 @@ with or endorsed by Mawaqit.
     - CustomPopupFooter: "#A29DBB"
       $name: Popup footer
     $name: Custom theme settings
+    #! $showIf: {AdvancedOptions: true}
   $name: Advanced customization
 */
 // ==/WindhawkModSettings==
@@ -952,7 +961,7 @@ static Insets ParseInsets(const std::wstring& value,int minVal,int maxVal){
  }
  return result;
 }
-static int g_width=220,g_pillHeight=0,g_trayGap=0,g_cornerRadius=13,g_fontSize=15;
+static int g_width=200,g_pillHeight=0,g_trayGap=5,g_cornerRadius=13,g_fontSize=15;
 static Insets g_margins{},g_padding{};
 static std::wstring g_theme=L"system";
 struct PillPalette { winrt::Windows::UI::Color background,foreground,countdown,separator; };
@@ -1007,7 +1016,7 @@ static PillPalette ResolvePillPalette(const std::wstring& theme) {
  return {Rgb(0x292929),Rgb(0xF4F4F4),accent,Rgb(0xB8B8B8)};
 }
 static bool g_showNext=true,g_showCountdown=true,g_enablePopup=true;
-static std::atomic<int> g_popupAutoCloseSeconds{0};
+static std::atomic<int> g_popupAutoCloseSeconds{5};
 static ULONGLONG g_popupAutoCloseDeadline=0;
 static std::wstring g_mosque=L"al-haram-makkah-saudi-arabia";
 static int g_refreshHours=24;
@@ -1501,11 +1510,11 @@ static void LoadModSettings() {
        theme!=L"solarized-light" && theme!=L"custom")theme=L"system";
     g_theme=theme;
     int width=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.Width");
-    g_width=(width>=180&&width<=400)?width:220;
+    g_width=(width>=180&&width<=400)?width:200;
     int height=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.PillHeight");
     g_pillHeight=(height>=0&&height<=100)?height:0;
     int gap=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.TrayGap");
-    g_trayGap=(gap>=0&&gap<=100)?gap:0;
+    g_trayGap=(gap>=0&&gap<=100)?gap:5;
     int radius=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.CornerRadius");
     g_cornerRadius=(radius>=0&&radius<=30)?radius:13;
     int font=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.FontSize");
