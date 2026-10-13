@@ -1,13 +1,13 @@
 // ==WindhawkMod==
 // @id windhawk-mawaqit
 // @name Mawaqit Prayer Clock
-// @description Mawaqit prayer clock for your taskbar using Windhawk. Displays the upcoming prayer, a live countdown, and a clickable prayer schedule.
-// @version 0.6.6
+// @description Native Windows 11 taskbar prayer clock with live countdown, prayer schedule popup, and customizable themes.
+// @version 0.6.7
 // @author HHeitlager
 // @github https://github.com/hheitlager
 // @include explorer.exe
 // @architecture x86-64
-// @compilerOptions -lgdi32 -luser32 -lwinhttp -lshell32
+// @compilerOptions -lole32 -loleaut32 -lruntimeobject -lshell32 -luuid -lgdi32 -lwinhttp
 // ==/WindhawkMod==
 
 // ==WindhawkModReadme==
@@ -18,11 +18,12 @@ Mawaqit prayer clock for your taskbar using Windhawk. Displays the upcoming pray
 
 ## Features
 - Upcoming prayer name, scheduled time, and live countdown
-- Clickable prayer-schedule popup
-- Five appearance themes: **Emberveil**, **Windows / System**, **Traditional Islamic**, **Catppucchin Mocha**, and **Custom**
+- Clickable prayer-schedule popup with optional auto-close timer
+- 13 appearance themes, including Windows / System, Traditional Islamic, Catppuccin Mocha, Emberveil, Dracula, Nord, Gruvbox Dark, Tokyo Night, Solarized Dark and Light, and Custom
 - Independent custom colors for the pill and popup
 - Visibility switches for the prayer label, countdown, and popup
-- Automatic or manual clock height, four-sided margins and padding, tray gap, and corner radius
+- Native XAML taskbar integration with reserved layout space
+- Automatic or manual clock height, four-sided margins and padding, tray gap, corner radius, and font size
 - Background schedule updates through native WinHTTP, with configurable refresh interval
 - Live settings updates without restarting Explorer
 
@@ -45,6 +46,7 @@ See how Mawaqit Prayer Clock integrates into a fully customized Windows 11 deskt
 Choose a mosque identifier or Mawaqit URL in Settings.
 Select an appearance theme and customize the widget as desired.
 Custom color settings only apply when the Custom theme is selected.
+Set popup auto-close to 0 to keep the popup open until dismissed.
 
 ## More information
 For installation instructions, additional screenshots,
@@ -64,95 +66,106 @@ with or endorsed by Mawaqit.
 // ==WindhawkModSettings==
 /*
 - General:
-    - Mosque: masjidomar
-      $name: Mawaqit - Mosque ID or URL
-      $description: "Mosque identifier or full Mawaqit URL."
-    - Theme: emberveil
-      $name: Appearance - Theme
-      $description: "Choose a preset for the pill and popup. Set custom in Advanced JSON to use custom colors."
-      $options:
-        - emberveil: Emberveil
-        - system: Windows / System
-        - traditional: Traditional Islamic
-        - catppuccin: Catppuccin Mocha
+  - Mosque: al-haram-makkah-saudi-arabia
+    $name: Mawaqit mosque identifier or URL
+  - Theme: system
+    $name: Theme
+    $options:
+    - system: Windows / System
+    - traditional: Traditional Islamic
+    - catppuccin: Catppuccin Mocha
+    - emberveil: Emberveil
+    - emberveil-midnight: Emberveil Midnight
+    - emerald-mosque: Emerald Mosque
+    - dracula: Dracula
+    - nord: Nord
+    - gruvbox: Gruvbox Dark
+    - tokyo-night: Tokyo Night
+    - solarized-dark: Solarized Dark
+    - solarized-light: Solarized Light
+    - custom: Custom
   $name: General
 - Display:
-    - ShowNextPrayer: true
-      $name: Show next prayer
-    - ShowCountdown: true
-      $name: Show countdown
-    - EnablePopup: true
-      $name: Enable prayer popup
+  - ShowNextPrayer: true
+    $name: Show next prayer
+  - ShowCountdown: true
+    $name: Show countdown
+  - EnablePopup: true
+    $name: Enable prayer schedule popup
+  - PopupAutoCloseSeconds: 0
+    $name: Popup auto-close (seconds, 0 = disabled)
+    $description: Automatically dismiss the prayer schedule popup after 1–300 seconds. Opening it again resets the timer.
   $name: Display
 - AdvancedCustomization:
-    - AdvancedOptions: false
-      $name: Show advanced options
-      $description: "Show additional customization settings."
-    - ModSettingsAdvanced:
-        - RefreshHours: 24
-          $name: Refresh interval (hours)
-          $description: "How often to refresh the prayer schedule. Failed updates retry after one hour."
-      $name: Mod settings
-      #! $showIf: {AdvancedOptions: true}
-    - LayoutSettings:
-        - Width: 220
-          $name: Width
-          $description: "Width of the taskbar clock in pixels (180–400)."
-        - PillHeight: 0
-          $name: Height
-          $description: "Height in pixels. Set to 0 to automatically follow the taskbar size; values from 1 to 100 override the automatic height, up to the taskbar height."
-        - Margins: "0, 0, 0, 0"
-          $name: Margin (left, top, right, bottom)
-          $description: "Move the clock relative to its automatic position, in pixels. Positive left moves right; positive top moves down. Right and bottom move in the opposite directions. Negative values are supported (−100 to 100)."
-        - Padding: "0, 0, 0, 0"
-          $name: Padding (left, top, right, bottom)
-          $description: "Reserve space between the clock edges and its text, in pixels (0–100 per side). Does not resize or reposition the clock."
-        - TrayGap: 0
-          $name: Gap before system tray
-          $description: "Horizontal spacing between the clock and the system tray, in pixels (0–100)."
-        - CornerRadius: 13
-          $name: Corner radius
-          $description: "Roundness of the clock corners, in pixels (0–30)."
-        - FontSize: 15
-          $name: Fontsize
-          $description: "Size of the clock text, in pixels (10–24)."
-      $name: Layout settings
-      #! $showIf: {AdvancedOptions: true}
-    - CustomThemeSettings:
-        - CustomPillBackground: "#211E32"
-          $name: Pill background
-        - CustomPillText: "#F5E6C8"
-          $name: Pill prayer text
-        - CustomPillSeparator: "#B8A98A"
-          $name: Pill separator
-        - CustomPillCountdown: "#FFBC5E"
-          $name: Pill countdown
-        - CustomPopupBackground: "#1D1D2D"
-          $name: Popup background
-        - CustomPopupBorder: "#3B3B58"
-          $name: Popup border
-        - CustomPopupText: "#D3D0E8"
-          $name: Popup main text
-        - CustomPopupMuted: "#B8B3D1"
-          $name: Popup secondary text
-        - CustomPopupRule: "#424158"
-          $name: Popup dividers
-        - CustomPopupFooter: "#A29DBB"
-          $name: Popup footer
-      $name: Custom theme settings
-      #! $showIf: {AdvancedOptions: true}
+  - LayoutSettings:
+    - Width: 220
+      $name: Width
+      $description: Native XAML reserved width, 180–400 px.
+    - PillHeight: 0
+      $name: Height
+      $description: Physical pixels, 0 automatic or 1–100.
+    - Margins: "0, 0, 0, 0"
+      $name: Margin (left, top, right, bottom)
+      $description: Signed pixel offsets, -100 to 100. Does not reserve extra tray space.
+    - Padding: "0, 0, 0, 0"
+      $name: Padding (left, top, right, bottom)
+      $description: Internal text padding, 0–100 px. Does not resize the clock.
+    - TrayGap: 0
+      $name: Gap before system tray
+    - CornerRadius: 13
+      $name: Corner radius
+    - FontSize: 15
+      $name: Fontsize
+    $name: Layout settings
+  - ModSettingsAdvanced:
+    - RefreshHours: 24
+      $name: Refresh interval (hours)
+      $description: Failed updates retry after one hour.
+    $name: Mod settings
+  - CustomThemeSettings:
+    - CustomPillBackground: "#211E32"
+      $name: Pill background
+    - CustomPillText: "#F5E6C8"
+      $name: Pill prayer text
+    - CustomPillSeparator: "#B8A98A"
+      $name: Pill separator
+    - CustomPillCountdown: "#FFBC5E"
+      $name: Pill countdown
+    - CustomPopupBackground: "#1D1D2D"
+      $name: Popup background
+    - CustomPopupBorder: "#3B3B58"
+      $name: Popup border
+    - CustomPopupText: "#D3D0E8"
+      $name: Popup main text
+    - CustomPopupMuted: "#B8B3D1"
+      $name: Popup secondary text
+    - CustomPopupRule: "#424158"
+      $name: Popup dividers
+    - CustomPopupFooter: "#A29DBB"
+      $name: Popup footer
+    $name: Custom theme settings
   $name: Advanced customization
 */
 // ==/WindhawkModSettings==
 
 #include <windows.h>
+#undef GetCurrentTime
+#include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Foundation.Collections.h>
+#include <winrt/Windows.UI.Xaml.h>
+#include <winrt/Windows.UI.Xaml.Controls.h>
+#include <winrt/Windows.UI.Xaml.Media.h>
+#include <winrt/Windows.UI.h>
+#include <winrt/Windows.UI.Xaml.Media.Imaging.h>
+#include <winrt/Windows.UI.Xaml.Input.h>
+#include <windhawk_utils.h>
+#include <atomic>
+#include <algorithm>
+#include <string>
+#include <cstdint>
 #include <winhttp.h>
-#include <shlobj.h>
 #include <map>
 #include <stdexcept>
-#include <algorithm>
-#include <cstdio>
-#include <string>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -161,6 +174,560 @@ with or endorsed by Mawaqit.
 #include <iterator>
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
+
+using namespace winrt::Windows::UI::Xaml;
+using namespace winrt::Windows::UI::Xaml::Controls;
+using namespace winrt::Windows::UI::Xaml::Media;
+
+namespace folder_menus_slot_lease {
+
+using winrt::Windows::UI::Xaml::FrameworkElement;
+using winrt::Windows::UI::Xaml::GridUnitType;
+using winrt::Windows::UI::Xaml::Controls::ColumnDefinition;
+using winrt::Windows::UI::Xaml::Controls::Grid;
+using winrt::Windows::UI::Xaml::Controls::Panel;
+using winrt::Windows::UI::Xaml::Controls::StackPanel;
+
+enum class Anchor {
+    BeforeIcons,
+    BeforeOmni,
+    BeforeClock,
+    AfterClock,
+    AfterShowDesktop,
+};
+
+// Which layout contract the live tray panel follows.
+enum class Kind {
+    Unsupported,  // some other Panel: do not guess its layout semantics.
+    Columns,      // Grid. A slot is a column index.
+    Order,        // StackPanel. A slot is a child index.
+};
+
+struct Lease {
+    std::wstring markerName;
+    int slot = -1;
+    Kind kind = Kind::Unsupported;
+};
+
+inline Kind Classify(FrameworkElement const& parent) {
+    if (!parent)
+        return Kind::Unsupported;
+    if (parent.try_as<Grid>())
+        return Kind::Columns;
+    if (parent.try_as<StackPanel>())
+        return Kind::Order;
+    return Kind::Unsupported;
+}
+
+// Class name of an unexpected panel, so a mod can log what it actually got
+// instead of reporting a bare "not found" for an element that is right there.
+inline std::wstring ClassName(FrameworkElement const& element) {
+    if (!element)
+        return L"(null)";
+    try {
+        return std::wstring(winrt::get_class_name(element));
+    } catch (...) {
+        return L"(unknown)";
+    }
+}
+
+// Named direct children, for logging when an anchor cannot be resolved. A tray
+// restructure shows up here as missing or renamed names, which is the one thing
+// a user's debug log otherwise cannot tell us.
+inline std::wstring DescribeChildren(Panel const& parent) {
+    if (!parent)
+        return L"(none)";
+    std::wstring names;
+    try {
+        for (auto const& child : parent.Children()) {
+            auto element = child.try_as<FrameworkElement>();
+            if (!element || element.Name().empty())
+                continue;
+            if (!names.empty())
+                names += L", ";
+            names += element.Name();
+        }
+    } catch (...) {
+        return L"(unreadable)";
+    }
+    return names.empty() ? L"(no named children)" : names;
+}
+
+inline FrameworkElement FindDirectChild(Panel const& parent,
+                                        wchar_t const* name) {
+    if (!parent || !name)
+        return nullptr;
+    for (auto const& child : parent.Children()) {
+        auto element = child.try_as<FrameworkElement>();
+        if (element && element.Name() == name)
+            return element;
+    }
+    return nullptr;
+}
+
+inline int IndexOfChild(Panel const& parent, FrameworkElement const& child) {
+    if (!parent || !child)
+        return -1;
+    for (uint32_t i = 0; i < parent.Children().Size(); ++i) {
+        if (parent.Children().GetAt(i).try_as<FrameworkElement>() == child)
+            return static_cast<int>(i);
+    }
+    return -1;
+}
+
+inline bool ResolveSlot(Panel const& parent, Anchor anchor, int& slot) {
+    Kind kind = Classify(parent);
+    if (kind == Kind::Unsupported)
+        return false;
+
+    if (anchor == Anchor::BeforeIcons) {
+        slot = 0;
+        return true;
+    }
+
+    wchar_t const* referenceName = nullptr;
+    bool after = false;
+    switch (anchor) {
+        case Anchor::BeforeOmni:
+            referenceName = L"ControlCenterButton";
+            break;
+        case Anchor::BeforeClock:
+            referenceName = L"NotificationCenterButton";
+            break;
+        case Anchor::AfterClock:
+            referenceName = L"ShowDesktopStack";
+            break;
+        case Anchor::AfterShowDesktop:
+            referenceName = L"ShowDesktopStack";
+            after = true;
+            break;
+        case Anchor::BeforeIcons:
+            break;
+    }
+
+    auto reference = FindDirectChild(parent, referenceName);
+    if (!reference)
+        return false; // Never silently turn an unavailable anchor into slot 0.
+
+    if (kind == Kind::Columns) {
+        slot = Grid::GetColumn(reference) +
+               (after ? std::max(1, Grid::GetColumnSpan(reference)) : 0);
+        return true;
+    }
+
+    // Order: the reference's own child index is the slot. There is no span to
+    // step over -- a StackPanel child occupies exactly one position.
+    int index = IndexOfChild(parent, reference);
+    if (index < 0)
+        return false;
+    slot = index + (after ? 1 : 0);
+    return true;
+}
+
+inline bool Release(Panel const& parent, Lease& lease);
+
+inline bool AcquireAt(Panel const& parent, int slot,
+                      std::wstring const& markerName, Lease& lease) {
+    Kind kind = Classify(parent);
+    if (kind == Kind::Unsupported || slot < 0 || markerName.empty())
+        return false;
+
+    // A marker with this name already in the tray is either this caller's own
+    // live lease — refuse, acquiring twice would strand the first slot — or a
+    // leftover from an instance whose teardown never reached the UI thread.
+    // Refusing the leftover would block every later apply until Explorer
+    // restarts, so release it and take the slot fresh, correcting the
+    // requested slot if the released one sat before it.
+    if (auto stale = FindDirectChild(parent, markerName.c_str())) {
+        if (lease.markerName == markerName)
+            return false;
+        int staleSlot = kind == Kind::Columns
+                            ? Grid::GetColumn(stale)
+                            : IndexOfChild(parent, stale);
+        Lease leftover{markerName, staleSlot, kind};
+        if (!Release(parent, leftover))
+            return false;
+        if (staleSlot >= 0 && staleSlot < slot)
+            --slot;
+    }
+
+    Grid marker;
+    marker.Name(markerName);
+    marker.Width(0.0);
+    marker.Height(0.0);
+    marker.IsHitTestVisible(false);
+
+    if (kind == Kind::Columns) {
+        auto grid = parent.try_as<Grid>();
+        if (!grid)
+            return false;
+        ColumnDefinition definition;
+        definition.Width({1.0, GridUnitType::Auto});
+        if (static_cast<uint32_t>(slot) < grid.ColumnDefinitions().Size())
+            grid.ColumnDefinitions().InsertAt(slot, definition);
+        else
+            grid.ColumnDefinitions().Append(definition);
+
+        for (auto const& child : grid.Children()) {
+            auto element = child.try_as<FrameworkElement>();
+            if (!element) continue;
+            int start = Grid::GetColumn(element);
+            int span = Grid::GetColumnSpan(element);
+            if (start >= slot)
+                Grid::SetColumn(element, start + 1);
+            else if (start + span > slot)
+                Grid::SetColumnSpan(element, span + 1);
+        }
+
+        Grid::SetColumn(marker, slot);
+        grid.Children().Append(marker);
+    } else {
+        // Order: no column is created or owned. The marker simply holds the
+        // position, and PlaceChild drops the content next to it.
+        uint32_t index = std::min(static_cast<uint32_t>(slot),
+                                  parent.Children().Size());
+        parent.Children().InsertAt(index, marker);
+        slot = static_cast<int>(index);
+    }
+
+    lease = {markerName, slot, kind};
+    return true;
+}
+
+// Live index of the lease marker. Other mods inject and remove siblings around
+// us, so the acquire-time index is a hint, never the truth at removal time.
+inline bool FindMarker(Panel const& parent, Lease const& lease,
+                       uint32_t& index) {
+    if (!parent || lease.markerName.empty())
+        return false;
+    for (uint32_t i = 0; i < parent.Children().Size(); ++i) {
+        auto element = parent.Children().GetAt(i).try_as<FrameworkElement>();
+        if (element && element.Name() == lease.markerName) {
+            index = i;
+            return true;
+        }
+    }
+    return false;
+}
+
+// Put mod content into the leased slot. On a Grid the content joins the leased
+// column; on a StackPanel it is inserted directly after the marker, so the
+// marker's position is the content's position.
+inline bool PlaceChild(Panel const& parent, Lease const& lease,
+                       FrameworkElement const& content) {
+    if (!parent || !content || lease.kind == Kind::Unsupported)
+        return false;
+
+    uint32_t markerIndex = 0;
+    if (!FindMarker(parent, lease, markerIndex))
+        return false;
+
+    if (lease.kind == Kind::Columns) {
+        auto marker = parent.Children().GetAt(markerIndex)
+                          .try_as<FrameworkElement>();
+        Grid::SetColumn(content, marker ? Grid::GetColumn(marker) : lease.slot);
+        parent.Children().Append(content);
+        return true;
+    }
+
+    parent.Children().InsertAt(markerIndex + 1, content);
+    return true;
+}
+
+inline bool Release(Panel const& parent, Lease& lease) {
+    if (!parent || lease.markerName.empty())
+        return false;
+
+    uint32_t markerIndex = 0;
+    if (!FindMarker(parent, lease, markerIndex))
+        return false;
+
+    if (lease.kind == Kind::Order) {
+        parent.Children().RemoveAt(markerIndex);
+        lease = {};
+        return true;
+    }
+
+    auto grid = parent.try_as<Grid>();
+    auto marker =
+        parent.Children().GetAt(markerIndex).try_as<FrameworkElement>();
+    int liveColumn = marker ? Grid::GetColumn(marker) : lease.slot;
+    if (!grid || liveColumn < 0)
+        return false;
+
+    grid.Children().RemoveAt(markerIndex);
+    if (static_cast<uint32_t>(liveColumn) < grid.ColumnDefinitions().Size())
+        grid.ColumnDefinitions().RemoveAt(liveColumn);
+
+    for (auto const& child : grid.Children()) {
+        auto element = child.try_as<FrameworkElement>();
+        if (!element) continue;
+        int start = Grid::GetColumn(element);
+        int span = Grid::GetColumnSpan(element);
+        if (start > liveColumn)
+            Grid::SetColumn(element, start - 1);
+        else if (start < liveColumn && start + span > liveColumn)
+            Grid::SetColumnSpan(element, std::max(1, span - 1));
+    }
+
+    lease = {};
+    return true;
+}
+
+}  // namespace folder_menus_slot_lease
+namespace folder_menus_taskbar_window {
+
+// ---- Window discovery -------------------------------------------------------
+
+inline HWND FindCurrentProcessTaskbarWnd() {
+    HWND result = nullptr;
+    EnumWindows(
+        [](HWND window, LPARAM parameter) -> BOOL {
+            DWORD processId = 0;
+            WCHAR className[32];
+            if (GetWindowThreadProcessId(window, &processId) &&
+                processId == GetCurrentProcessId() &&
+                GetClassName(window, className, ARRAYSIZE(className)) &&
+                _wcsicmp(className, L"Shell_TrayWnd") == 0) {
+                *reinterpret_cast<HWND*>(parameter) = window;
+                return FALSE;
+            }
+            return TRUE;
+        },
+        reinterpret_cast<LPARAM>(&result));
+    return result;
+}
+
+// Shell_TrayWnd can be recreated inside Explorer. A cache is useful only while
+// it names a live window; otherwise rediscover before dispatch or teardown.
+inline HWND ResolveTaskbarWnd(HWND cached) {
+    if (cached && IsWindow(cached))
+        return cached;
+    return FindCurrentProcessTaskbarWnd();
+}
+
+}  // namespace folder_menus_taskbar_window
+namespace folder_menus_dispatch {
+
+// ---- UI-thread marshalling --------------------------------------------------
+//
+// XAML may only be touched from the thread that owns it. This posts work onto
+// the taskbar's thread with a CALLWNDPROC hook and a private registered
+// message, and reports whether the callback actually ran — a caller that
+// assumes it did will corrupt its own state when the dispatch failed.
+
+using ThreadProc = void (*)(void*);
+using ExceptionLogFn = void (*)(PCWSTR context);
+
+inline ExceptionLogFn g_logException = nullptr;
+
+// Point this at the mod's logger once in Wh_ModInit so failures inside a UI
+// callback are reported in the mod's own voice.
+inline void SetExceptionLogger(ExceptionLogFn logger) {
+    g_logException = logger;
+}
+
+inline bool Invoke(ThreadProc proc, void* parameter) {
+    try {
+        proc(parameter);
+        return true;
+    } catch (...) {
+        if (g_logException) g_logException(L"UI callback");
+    }
+    return false;
+}
+
+struct Dispatch {
+    ThreadProc proc;
+    void* parameter;
+    bool succeeded = false;
+    // Every concurrent caller installs its own hook with this same proc, and
+    // each hook instance sees every message equal to g_dispatchMessage. With
+    // two dispatches in flight, both hooks are in the chain when either
+    // message arrives, so without this each callback would run twice. The
+    // hooks run one after another on the UI thread, so a plain flag suffices.
+    bool ran = false;
+};
+
+// The private message this mod dispatches on. Set before the hook is
+// installed, and read by the hook proc to recognise its own message.
+//
+// A CALLWNDPROC HOOK SEES EVERY MESSAGE SENT TO EVERY WINDOW ON THE TASKBAR'S
+// UI THREAD. `lParam` for all of those is arbitrary — an integer, a flag, a
+// pointer to something else entirely. So the message MUST be checked first,
+// against a value that does not come from lParam, and only then may lParam be
+// treated as a Dispatch*. Reading anything out of lParam before that check
+// dereferences whatever happened to be in the message and takes Explorer down
+// with it.
+//
+// Atomic because the caller may be the retry thread while the hook
+// proc runs on the taskbar's UI thread. RegisterWindowMessageW returns the
+// same value for the same string for the lifetime of the session, so this
+// settles on one value immediately and never changes again.
+inline std::atomic<UINT> g_dispatchMessage{0};
+
+// messageName must embed WH_MOD_ID, so two mods cannot collide on the message.
+inline bool RunFromWindowThread(HWND window, ThreadProc proc, void* parameter,
+                                PCWSTR messageName) {
+    UINT message = RegisterWindowMessageW(messageName);
+    if (!message) return false;
+
+    DWORD threadId = GetWindowThreadProcessId(window, nullptr);
+    if (!threadId) return false;
+    if (threadId == GetCurrentThreadId()) return Invoke(proc, parameter);
+
+    g_dispatchMessage.store(message, std::memory_order_release);
+
+    HHOOK hook = SetWindowsHookExW(
+        WH_CALLWNDPROC,
+        [](int code, WPARAM wParam, LPARAM lParam) -> LRESULT {
+            if (code == HC_ACTION) {
+                auto const* call = reinterpret_cast<CWPSTRUCT const*>(lParam);
+                // Message first. Only our own private message carries a
+                // Dispatch* in lParam; everything else carries something we
+                // must not touch.
+                UINT expected =
+                    g_dispatchMessage.load(std::memory_order_acquire);
+                if (expected && call->message == expected) {
+                    if (auto* dispatch =
+                            reinterpret_cast<Dispatch*>(call->lParam);
+                        dispatch && !dispatch->ran) {
+                        dispatch->ran = true;
+                        dispatch->succeeded =
+                            Invoke(dispatch->proc, dispatch->parameter);
+                    }
+                }
+            }
+            return CallNextHookEx(nullptr, code, wParam, lParam);
+        },
+        nullptr, threadId);
+    if (!hook) return false;
+
+    Dispatch dispatch{proc, parameter};
+    SendMessageW(window, message, 0, reinterpret_cast<LPARAM>(&dispatch));
+    UnhookWindowsHookEx(hook);
+    return dispatch.succeeded;
+}
+
+}  // namespace folder_menus_dispatch
+namespace folder_menus_taskbar_xaml {
+
+using winrt::Windows::UI::Xaml::FrameworkElement;
+using winrt::Windows::UI::Xaml::XamlRoot;
+
+// ---- XamlRoot ---------------------------------------------------------------
+
+using CTaskBand_GetTaskbarHost_t = void*(WINAPI*)(void*, void*);
+using TaskbarHost_FrameHeight_t = int(WINAPI*)(void*);
+using Ref_count_base_Decref_t = void(WINAPI*)(void*);
+using TrayUI_StartTaskbar_t = void(WINAPI*)(void*);
+
+inline CTaskBand_GetTaskbarHost_t CTaskBand_GetTaskbarHost_Original = nullptr;
+inline TaskbarHost_FrameHeight_t TaskbarHost_FrameHeight_Original = nullptr;
+inline Ref_count_base_Decref_t Ref_count_base_Decref_Original = nullptr;
+inline TrayUI_StartTaskbar_t TrayUI_StartTaskbar_Original = nullptr;
+inline void* CTaskBand_ITaskListWndSite_vftable = nullptr;
+
+// The mod's rebuild callback, invoked after Explorer rebuilds the taskbar.
+inline void (*g_onTaskbarRebuilt)() = nullptr;
+
+inline void WINAPI TrayUI_StartTaskbar_Hook(void* self) {
+    TrayUI_StartTaskbar_Original(self);
+    try {
+        if (g_onTaskbarRebuilt) g_onTaskbarRebuilt();
+    } catch (...) {
+        if (folder_menus_dispatch::g_logException)
+            folder_menus_dispatch::g_logException(L"TrayUI::StartTaskbar hook");
+    }
+}
+
+inline bool HookTaskbarSymbols(void (*onTaskbarRebuilt)()) {
+    g_onTaskbarRebuilt = onTaskbarRebuilt;
+    HMODULE taskbar = LoadLibraryExW(L"taskbar.dll", nullptr,
+                                     LOAD_LIBRARY_SEARCH_SYSTEM32);
+    if (!taskbar) return false;
+    WindhawkUtils::SYMBOL_HOOK taskbarDllHooks[] = {
+        {{LR"(const CTaskBand::`vftable'{for `ITaskListWndSite'})"},
+         &CTaskBand_ITaskListWndSite_vftable},
+        {{LR"(public: virtual class std::shared_ptr<class TaskbarHost> __cdecl CTaskBand::GetTaskbarHost(void)const )"},
+         &CTaskBand_GetTaskbarHost_Original},
+        {{LR"(public: int __cdecl TaskbarHost::FrameHeight(void)const )"},
+         &TaskbarHost_FrameHeight_Original},
+        {{LR"(public: void __cdecl std::_Ref_count_base::_Decref(void))"},
+         &Ref_count_base_Decref_Original},
+        {{LR"(public: virtual void __cdecl TrayUI::StartTaskbar(void))"},
+         &TrayUI_StartTaskbar_Original, TrayUI_StartTaskbar_Hook},
+    };
+    return WindhawkUtils::HookSymbols(taskbar, taskbarDllHooks,
+                                      ARRAYSIZE(taskbarDllHooks));
+}
+
+// The FrameworkElement lives at an offset inside TaskbarHost that MOVES
+// between Windows builds, so it is read out of TaskbarHost::FrameHeight's
+// prologue at runtime rather than hardcoded.
+inline size_t FrameworkElementOffset() {
+    size_t offset = 0x10;
+#if defined(_M_X64)
+    BYTE const* code =
+        reinterpret_cast<BYTE const*>(TaskbarHost_FrameHeight_Original);
+    if (code[0] == 0x48 && code[1] == 0x83 && code[2] == 0xEC &&
+        code[4] == 0x48 && code[5] == 0x83 && code[6] == 0xC1 &&
+        code[7] <= 0x7F) {
+        offset = code[7];
+    }
+#elif defined(_M_ARM64)
+    DWORD const* code =
+        reinterpret_cast<DWORD const*>(TaskbarHost_FrameHeight_Original);
+    if (code[0] == 0xD503237F && (code[1] & 0xFFC07FFF) == 0xA9807BFD &&
+        code[2] == 0x910003FD && (code[3] & 0xFFF00FE0) == 0xF8400C00) {
+        offset = (code[3] >> 12) & 0xFF;
+    }
+#else
+#error "Unsupported architecture"
+#endif
+    return offset;
+}
+
+inline XamlRoot GetTaskbarXamlRoot(HWND taskbarWnd) {
+    if (!CTaskBand_GetTaskbarHost_Original ||
+        !TaskbarHost_FrameHeight_Original || !Ref_count_base_Decref_Original ||
+        !CTaskBand_ITaskListWndSite_vftable)
+        return nullptr;
+
+    HWND taskSwWnd = (HWND)GetProp(taskbarWnd, L"TaskbandHWND");
+    if (!taskSwWnd) return nullptr;
+    void* taskBand = (void*)GetWindowLongPtr(taskSwWnd, 0);
+    if (!taskBand) return nullptr;
+
+    void* site = taskBand;
+    for (int i = 0; *(void**)site != CTaskBand_ITaskListWndSite_vftable; ++i) {
+        if (i == 20) return nullptr;
+        site = (void**)site + 1;
+    }
+
+    void* host[2]{};
+    CTaskBand_GetTaskbarHost_Original(site, host);
+    if (!host[0] || !host[1]) {
+        if (host[1]) Ref_count_base_Decref_Original(host[1]);
+        return nullptr;
+    }
+
+    auto* unknown =
+        *(IUnknown**)((BYTE*)host[0] + FrameworkElementOffset());
+    if (!unknown) {
+        Ref_count_base_Decref_Original(host[1]);
+        return nullptr;
+    }
+    FrameworkElement element = nullptr;
+    unknown->QueryInterface(winrt::guid_of<FrameworkElement>(),
+                            winrt::put_abi(element));
+    auto result = element ? element.XamlRoot() : nullptr;
+    Ref_count_base_Decref_Original(host[1]);
+    return result;
+}
+
+}  // namespace folder_menus_taskbar_xaml
 
 namespace NativeUpdater {
 
@@ -242,231 +809,14 @@ static bool Run(const std::wstring& mosque) {
 }
 }
 
-static HANDLE g_updaterThread=nullptr, g_stopEvent=nullptr, g_settingsEvent=nullptr;
-static SRWLOCK g_updaterLock = SRWLOCK_INIT;
-static std::wstring g_mosque=L"masjidomar";
-static int g_refreshHours=24;
-static constexpr UINT WM_EMBERVEIL_UPDATED=WM_APP+42;
-static constexpr UINT WM_EMBERVEIL_APPLY_SETTINGS=WM_APP+43;
 
-
-struct EdgeInsets {
-    int left = 0;
-    int top = 0;
-    int right = 0;
-    int bottom = 0;
-};
-
-static EdgeInsets ParseMargins(const std::wstring& value) {
-    EdgeInsets margins;
-    std::wistringstream stream(value);
-    std::wstring parts[4];
-
-    for (int i = 0; i < 4; ++i) {
-        if (!std::getline(stream, parts[i], L','))
-            return {};
-    }
-
-    // Reject extra values.
-    std::wstring extra;
-    if (std::getline(stream, extra, L','))
-        return {};
-
-    int* values[] = {
-        &margins.left,
-        &margins.top,
-        &margins.right,
-        &margins.bottom
-    };
-
-    for (int i = 0; i < 4; ++i) {
-        wchar_t* end = nullptr;
-        const long parsed = wcstol(parts[i].c_str(), &end, 10);
-
-        if (end == parts[i].c_str())
-            return {};
-
-        while (*end == L' ' || *end == L'\t')
-            ++end;
-
-        if (*end != L'\0' || parsed < -100 || parsed > 100)
-            return {};
-
-        *values[i] = static_cast<int>(parsed);
-    }
-
-    return margins;
-}
-
-
-// Padding is internal to the pill and cannot be negative.
-static EdgeInsets ParsePadding(const std::wstring& value) {
-    EdgeInsets padding=ParseMargins(value);
-    if(padding.left<0 || padding.top<0 ||
-       padding.right<0 || padding.bottom<0)
-        return {};
-    return padding;
-}
-
-struct SettingsSnapshot {
- int width=220, trayGap=8;
-  EdgeInsets margins;
- int pillHeight=0, cornerRadius=13;
- EdgeInsets padding;
- int fontSize=15;
- int refreshHours=24;
- std::wstring mosque=L"masjidomar";
- std::wstring theme=L"emberveil";
- bool showNextPrayer=true, showCountdown=true, enablePopup=true;
-};
-
-static SettingsSnapshot ReadSettings() {
- SettingsSnapshot s;
- s.width=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.Width");if(s.width<180||s.width>400)s.width=220;
- PCWSTR marginsSetting=Wh_GetStringSetting(L"AdvancedCustomization.LayoutSettings.Margins");
-  if(marginsSetting){
-   s.margins=ParseMargins(marginsSetting);
-   Wh_FreeStringSetting(marginsSetting);
-  }
- s.trayGap=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.TrayGap");if(s.trayGap<0||s.trayGap>100)s.trayGap=8;
- s.pillHeight=Wh_GetIntSetting(
-        L"AdvancedCustomization.LayoutSettings.PillHeight"
-    );
-
-    if(s.pillHeight<0 || s.pillHeight>100)
-        s.pillHeight=0;
- s.fontSize=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.FontSize");
- if(s.fontSize<10||s.fontSize>24)s.fontSize=15;
- s.cornerRadius=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.CornerRadius");if(s.cornerRadius<0||s.cornerRadius>30)s.cornerRadius=13;
- PCWSTR paddingSetting=Wh_GetStringSetting(L"AdvancedCustomization.LayoutSettings.Padding");
- if(paddingSetting){
-  s.padding=ParsePadding(paddingSetting);
-  Wh_FreeStringSetting(paddingSetting);
- }
- PCWSTR mosque=Wh_GetStringSetting(L"General.Mosque");
- if(mosque){s.mosque=mosque;Wh_FreeStringSetting(mosque);}
-  PCWSTR theme=Wh_GetStringSetting(L"General.Theme");
-  if(theme){s.theme=theme;Wh_FreeStringSetting(theme);}
- s.refreshHours=Wh_GetIntSetting(L"AdvancedCustomization.ModSettingsAdvanced.RefreshHours");
- if(s.refreshHours<1||s.refreshHours>168)s.refreshHours=24;
- s.showNextPrayer=Wh_GetIntSetting(L"Display.ShowNextPrayer")!=0;
- s.showCountdown=Wh_GetIntSetting(L"Display.ShowCountdown")!=0;
- s.enablePopup=Wh_GetIntSetting(L"Display.EnablePopup")!=0;
- return s;
-}
-
-static void ApplyUpdaterSettings(const SettingsSnapshot& s) {
- bool changed=false;
- AcquireSRWLockExclusive(&g_updaterLock);
- changed=(g_mosque!=s.mosque || g_refreshHours!=s.refreshHours);
- g_mosque=s.mosque;
- g_refreshHours=s.refreshHours;
- ReleaseSRWLockExclusive(&g_updaterLock);
- if(changed && g_settingsEvent)SetEvent(g_settingsEvent);
-}
-
-static HWND g_window=nullptr, g_popup=nullptr;
-static bool g_lastMouseDown=false;
-static bool g_showNextPrayer=true, g_showCountdown=true, g_enablePopup=true;
-static std::wstring g_mosqueName=L"Mosque", g_hijriDate=L"";
-static constexpr wchar_t kPopupClass[]=L"EmberveilMawaqitPrayerPopup";
-static HANDLE g_thread=nullptr;
-static DWORD g_threadId=0;
-static int g_width=220,g_trayGap=8;
-static EdgeInsets g_margins;
-static int g_pillHeight=0,g_cornerRadius=13;
-static EdgeInsets g_padding;
-static int g_fontSize=15;
-static constexpr wchar_t kClass[]=L"EmberveilMawaqitLiveWindow";
+static std::wstring g_mosqueName=L"Mosque",g_hijriDate=L"";
 struct Prayer { std::wstring name; int minute; };
 static const wchar_t* kNames[]={L"Fajr",L"Dhuhr",L"Asr",L"Maghrib",L"Isha"};
 static std::wstring g_label=L"Loading schedule",g_countdown=L"--:--";
 static std::wstring g_loadedDate;
 static std::vector<Prayer> g_today,g_tomorrow;
-static COLORREF Hex(unsigned int c){return RGB((c>>16)&255,(c>>8)&255,c&255);}
 
-struct ThemePalette {
- COLORREF pillBackground, pillText, pillSeparator, pillCountdown;
- COLORREF popupBackground, popupBorder, popupText, popupMuted, popupRule, popupFooter;
-};
-
-static ThemePalette g_palette={
- Hex(0x211E32),Hex(0xF5E6C8),Hex(0xB8A98A),Hex(0xFFBC5E),
- Hex(0x1D1D2D),Hex(0x3B3B58),Hex(0xD3D0E8),Hex(0xB8B3D1),Hex(0x424158),Hex(0xA29DBB)
-};
-
-static ThemePalette EmberveilPalette(){return {
- Hex(0x211E32),Hex(0xF5E6C8),Hex(0xB8A98A),Hex(0xFFBC5E),
- Hex(0x1D1D2D),Hex(0x3B3B58),Hex(0xD3D0E8),Hex(0xB8B3D1),Hex(0x424158),Hex(0xA29DBB)
-};}
-
-static ThemePalette TraditionalPalette(){return {
- Hex(0x123D34),Hex(0xF5EAD3),Hex(0xC9B789),Hex(0xE4C784),
- Hex(0x102F29),Hex(0x527361),Hex(0xF5EAD3),Hex(0xC9B789),Hex(0x527361),Hex(0xE4C784)
-};}
-
-static ThemePalette CatppuccinMochaPalette(){return {
- Hex(0x211E32),Hex(0xCDD6F4),Hex(0xB4BEFE),Hex(0xCFA1FF),
- Hex(0x302D47),Hex(0x58536F),Hex(0xCDD6F4),Hex(0xA6ADC8),Hex(0x58536F),Hex(0xB4BEFE)
-};}
-
-static bool WindowsLightMode(){
- DWORD value=0,bytes=sizeof(value);
- HKEY key=nullptr;
- if(RegOpenKeyExW(HKEY_CURRENT_USER,L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",0,KEY_QUERY_VALUE,&key)!=ERROR_SUCCESS)return false;
- LONG result=RegQueryValueExW(key,L"AppsUseLightTheme",nullptr,nullptr,reinterpret_cast<BYTE*>(&value),&bytes);
- RegCloseKey(key);return result==ERROR_SUCCESS && value!=0;
-}
-
-static ThemePalette SystemPalette(){
- bool light=WindowsLightMode();
- COLORREF accent=GetSysColor(COLOR_HIGHLIGHT);
- if(light)return {Hex(0xF2F2F2),Hex(0x202020),Hex(0x686868),accent,
- Hex(0xFAFAFA),Hex(0xD1D1D1),Hex(0x202020),Hex(0x666666),Hex(0xD1D1D1),accent};
- return {Hex(0x292929),Hex(0xF4F4F4),Hex(0xB8B8B8),accent,
- Hex(0x202020),Hex(0x505050),Hex(0xF4F4F4),Hex(0xB8B8B8),Hex(0x505050),accent};
-}
-
-static COLORREF ParseHexColor(const std::wstring& s,COLORREF fallback){
- size_t i=(s.size()==7 && s[0]==L'#')?1:0;
- if(s.size()-i!=6)return fallback;
- unsigned value=0;
- for(;i<s.size();++i){wchar_t c=s[i];unsigned digit;
-  if(c>=L'0'&&c<=L'9')digit=c-L'0';
-  else if(c>=L'a'&&c<=L'f')digit=c-L'a'+10;
-  else if(c>=L'A'&&c<=L'F')digit=c-L'A'+10;
-  else return fallback;
-  value=(value<<4)|digit;
- }
- return Hex(value);
-}
-
-static std::wstring StringSetting(PCWSTR name){
- PCWSTR p=Wh_GetStringSetting(name);
- if(!p)return L"";
- std::wstring result=p;Wh_FreeStringSetting(p);return result;
-}
-
-static ThemePalette ReadPalette(const std::wstring& theme){
- if(theme==L"traditional")return TraditionalPalette();
- if(theme==L"catppuccin")return CatppuccinMochaPalette();
- if(theme==L"system")return SystemPalette();
- ThemePalette p=EmberveilPalette();
- if(theme!=L"custom")return p;
- p.pillBackground=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPillBackground"),p.pillBackground);
- p.pillText=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPillText"),p.pillText);
- p.pillSeparator=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPillSeparator"),p.pillSeparator);
- p.pillCountdown=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPillCountdown"),p.pillCountdown);
- p.popupBackground=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPopupBackground"),p.popupBackground);
- p.popupBorder=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPopupBorder"),p.popupBorder);
- p.popupText=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPopupText"),p.popupText);
- p.popupMuted=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPopupMuted"),p.popupMuted);
- p.popupRule=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPopupRule"),p.popupRule);
- p.popupFooter=ParseHexColor(StringSetting(L"AdvancedCustomization.CustomThemeSettings.CustomPopupFooter"),p.popupFooter);
- return p;
-}
-
-static std::wstring g_theme=L"emberveil";
 static std::wstring DateKey(const SYSTEMTIME& t){wchar_t b[16];swprintf(b,16,L"%04u-%02u-%02u",t.wYear,t.wMonth,t.wDay);return b;}
 
 static std::wstring CachePath(){
@@ -584,498 +934,649 @@ static void UpdateCountdown(){
 }
 
 
-static void PaintPopup(HWND hwnd){
-    PAINTSTRUCT ps;
-    HDC dc=BeginPaint(hwnd,&ps);
-    RECT r{};
-    GetClientRect(hwnd,&r);
 
-    HDC mem=CreateCompatibleDC(dc);
-    HBITMAP bmp=CreateCompatibleBitmap(dc,r.right,r.bottom);
-    HGDIOBJ oldBmp=SelectObject(mem,bmp);
+namespace slot = folder_menus_slot_lease;
+namespace taskwin = folder_menus_taskbar_window;
+namespace taskxaml = folder_menus_taskbar_xaml;
 
-    HBRUSH clear=CreateSolidBrush(RGB(0,0,0));
-    FillRect(mem,&r,clear);
-    DeleteObject(clear);
-
-    HBRUSH bg=CreateSolidBrush(g_palette.popupBackground);
-    HGDIOBJ oldBrush=SelectObject(mem,bg);
-    HPEN pen=CreatePen(PS_SOLID,1,g_palette.popupBorder);
-    HGDIOBJ oldPen=SelectObject(mem,pen);
-
-    RoundRect(mem,0,0,r.right,r.bottom,10,10);
-
-    SelectObject(mem,oldPen);
-    DeleteObject(pen);
-    SelectObject(mem,oldBrush);
-    DeleteObject(bg);
-
-    SetBkMode(mem,TRANSPARENT);
-
-    HFONT font=CreateFontW(
-        -15,0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,
-        DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,
-        CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,
-        DEFAULT_PITCH,L"Segoe UI"
-    );
-    HGDIOBJ oldFont=SelectObject(mem,font);
-
-    auto line=[&](const std::wstring& text,int left,int top,
-                  int right,int height,COLORREF color,UINT flags){
-        RECT rect{left,top,right,top+height};
-        SetTextColor(mem,color);
-        DrawTextW(mem,text.c_str(),-1,&rect,
-                  flags|DT_SINGLELINE|DT_VCENTER|
-                  DT_NOPREFIX|DT_END_ELLIPSIS);
-    };
-
-    // Layout dimensions.
-    constexpr int padding=12;
-    constexpr int rowHeight=25;
-    constexpr int textHeight=23;
-    constexpr int footerHeight=24;
-
-    // Mosque title: preserve support for two lines.
-    RECT nameRect{14,9,r.right-14,53};
-    SetTextColor(mem,g_palette.popupText);
-    DrawTextW(mem,g_mosqueName.c_str(),-1,&nameRect,
-              DT_CENTER|DT_WORDBREAK|DT_NOPREFIX|DT_END_ELLIPSIS);
-
-    // Only reserve Hijri date space when a date exists.
-    const bool hasHijri=!g_hijriDate.empty();
-
-    if(hasHijri){
-        line(g_hijriDate,14,54,r.right-14,19,
-             g_palette.popupMuted,DT_CENTER);
+static std::atomic<bool> g_stopping{false};
+static slot::Lease g_lease{};
+static winrt::weak_ref<FrameworkElement> g_placeholder;
+static winrt::weak_ref<Panel> g_parent;
+struct Insets {int left=0,top=0,right=0,bottom=0;};
+static Insets ParseInsets(const std::wstring& value,int minVal,int maxVal){
+ Insets result{};int values[4]{};
+ if(swscanf_s(value.c_str(),L" %d , %d , %d , %d ",&values[0],&values[1],&values[2],&values[3])==4){
+  for(int& v:values)v=std::clamp(v,minVal,maxVal);
+  result={values[0],values[1],values[2],values[3]};
+ }
+ return result;
+}
+static int g_width=220,g_pillHeight=0,g_trayGap=0,g_cornerRadius=13,g_fontSize=15;
+static Insets g_margins{},g_padding{};
+static std::wstring g_theme=L"system";
+struct PillPalette { winrt::Windows::UI::Color background,foreground,countdown,separator; };
+static winrt::Windows::UI::Color Rgb(unsigned c) {
+ return winrt::Windows::UI::Color{255,(uint8_t)(c>>16),(uint8_t)(c>>8),(uint8_t)c};
+}
+static COLORREF ParseThemeHex(const std::wstring& input,COLORREF fallback) {
+    if(input.size()!=7 || input[0]!=L'#')return fallback;
+    unsigned value=0;
+    for(size_t i=1;i<7;i++){
+        wchar_t c=input[i];
+        unsigned digit=(c>=L'0'&&c<=L'9')?(unsigned)(c-L'0'):
+                       (c>=L'a'&&c<=L'f')?(unsigned)(c-L'a'+10):
+                       (c>=L'A'&&c<=L'F')?(unsigned)(c-L'A'+10):16;
+        if(digit>15)return fallback;
+        value=(value<<4)|digit;
     }
+    return RGB((value>>16)&255,(value>>8)&255,value&255);
+}
+static std::wstring ReadSetting(PCWSTR key);
+static unsigned ReadCustomHex(PCWSTR key,unsigned fallback) {
+    COLORREF c=ParseThemeHex(ReadSetting(key),RGB((fallback>>16)&255,(fallback>>8)&255,fallback&255));
+    return (unsigned)GetRValue(c)<<16 | (unsigned)GetGValue(c)<<8 | GetBValue(c);
+}
+static bool WindowsLightMode() {
+ HKEY key=nullptr;
+ if(RegOpenKeyExW(HKEY_CURRENT_USER,L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",0,KEY_QUERY_VALUE,&key)!=ERROR_SUCCESS)return false;
+ DWORD value=0,bytes=sizeof(value);
+ LONG result=RegQueryValueExW(key,L"AppsUseLightTheme",nullptr,nullptr,reinterpret_cast<BYTE*>(&value),&bytes);
+ RegCloseKey(key);return result==ERROR_SUCCESS && value!=0;
+}
+static PillPalette ResolvePillPalette(const std::wstring& theme) {
+ if(theme==L"traditional")return {Rgb(0x123D34),Rgb(0xF5EAD3),Rgb(0xE4C784),Rgb(0xC9B789)};
+ if(theme==L"catppuccin")return {Rgb(0x211E32),Rgb(0xCDD6F4),Rgb(0xCFA1FF),Rgb(0xA6ADC8)};
+ if(theme==L"emberveil")return {Rgb(0x211E32),Rgb(0xF5E6C8),Rgb(0xFFBC5E),Rgb(0xB8A98A)};
+ if(theme==L"emberveil-midnight")return {Rgb(0x0A0C0E),Rgb(0xF5E6C8),Rgb(0xFFBC5E),Rgb(0xB8A98A)};
+ if(theme==L"emerald-mosque")return {Rgb(0x102B27),Rgb(0xF3E8CF),Rgb(0xD4AF70),Rgb(0xB6C9BD)};
+ if(theme==L"dracula")return {Rgb(0x282A36),Rgb(0xF8F8F2),Rgb(0xBD93F9),Rgb(0x6272A4)};
+ if(theme==L"nord")return {Rgb(0x2E3440),Rgb(0xECEFF4),Rgb(0x88C0D0),Rgb(0x81A1C1)};
+ if(theme==L"gruvbox")return {Rgb(0x282828),Rgb(0xEBDBB2),Rgb(0xFABD2F),Rgb(0x928374)};
+ if(theme==L"tokyo-night")return {Rgb(0x1A1B26),Rgb(0xC0CAF5),Rgb(0x7AA2F7),Rgb(0x565F89)};
+ if(theme==L"solarized-dark")return {Rgb(0x002B36),Rgb(0x93A1A1),Rgb(0xB58900),Rgb(0x586E75)};
+ if(theme==L"solarized-light")return {Rgb(0xFDF6E3),Rgb(0x586E75),Rgb(0x268BD2),Rgb(0x93A1A1)};
+ if(theme==L"custom")return {
+     Rgb(ReadCustomHex(L"AdvancedCustomization.CustomThemeSettings.CustomPillBackground",0x211E32)),
+     Rgb(ReadCustomHex(L"AdvancedCustomization.CustomThemeSettings.CustomPillText",0xF5E6C8)),
+     Rgb(ReadCustomHex(L"AdvancedCustomization.CustomThemeSettings.CustomPillCountdown",0xFFBC5E)),
+     Rgb(ReadCustomHex(L"AdvancedCustomization.CustomThemeSettings.CustomPillSeparator",0xB8A98A))};
+ COLORREF c=GetSysColor(COLOR_HIGHLIGHT);
+ auto accent=winrt::Windows::UI::Color{255,GetRValue(c),GetGValue(c),GetBValue(c)};
+ if(WindowsLightMode())return {Rgb(0xF2F2F2),Rgb(0x202020),accent,Rgb(0x666666)};
+ return {Rgb(0x292929),Rgb(0xF4F4F4),accent,Rgb(0xB8B8B8)};
+}
+static bool g_showNext=true,g_showCountdown=true,g_enablePopup=true;
+static std::atomic<int> g_popupAutoCloseSeconds{0};
+static ULONGLONG g_popupAutoCloseDeadline=0;
+static std::wstring g_mosque=L"al-haram-makkah-saudi-arabia";
+static int g_refreshHours=24;
+static SRWLOCK g_settingsLock=SRWLOCK_INIT;
+static HANDLE g_stopEvent=nullptr,g_refreshEvent=nullptr;
+static HANDLE g_updateWorker=nullptr;
+static HANDLE g_countdownWorker=nullptr;
+static void UpdateClockOnUiThread();
+static TextBlock g_prayerText{nullptr},g_countdownText{nullptr};
+static Grid g_pill{nullptr};
+static HWND g_popup=nullptr;
+static winrt::event_token g_tapToken{};
+static bool g_tapRegistered=false;
 
-    // Bring the first separator closer to the mosque title.
-    const int topRule=hasHijri?85:65;
 
-    // Keep the footer at the bottom of the existing popup.
-    const int bottomRule=r.bottom-34;
+// Popup is a small independent Win32 window owned by the taskbar UI thread.
+// The native taskbar slot remains XAML; this preserves the original v0.6.6
+// popup behavior without introducing another XAML layout lease.
+static COLORREF PopupRgb(unsigned v){return RGB((v>>16)&255,(v>>8)&255,v&255);}
+struct PopupColors {COLORREF bg,border,text,muted,rule,footer;};
+static PopupColors PopupTheme(){
+ if(g_theme==L"custom")return {
+     PopupRgb(ReadCustomHex(L"AdvancedCustomization.CustomThemeSettings.CustomPopupBackground",0x1D1D2D)),
+     PopupRgb(ReadCustomHex(L"AdvancedCustomization.CustomThemeSettings.CustomPopupBorder",0x3B3B58)),
+     PopupRgb(ReadCustomHex(L"AdvancedCustomization.CustomThemeSettings.CustomPopupText",0xD3D0E8)),
+     PopupRgb(ReadCustomHex(L"AdvancedCustomization.CustomThemeSettings.CustomPopupMuted",0xB8B3D1)),
+     PopupRgb(ReadCustomHex(L"AdvancedCustomization.CustomThemeSettings.CustomPopupRule",0x424158)),
+     PopupRgb(ReadCustomHex(L"AdvancedCustomization.CustomThemeSettings.CustomPopupFooter",0xA29DBB))};
+ if(g_theme==L"traditional")return {PopupRgb(0x102F29),PopupRgb(0x527361),PopupRgb(0xF5EAD3),PopupRgb(0xC9B789),PopupRgb(0x527361),PopupRgb(0xE4C784)};
+ if(g_theme==L"catppuccin")return {PopupRgb(0x302D47),PopupRgb(0x58536F),PopupRgb(0xCDD6F4),PopupRgb(0xA6ADC8),PopupRgb(0x58536F),PopupRgb(0xB4BEFE)};
+ if(g_theme==L"emberveil")return {PopupRgb(0x1D1D2D),PopupRgb(0x3B3B58),PopupRgb(0xD3D0E8),PopupRgb(0xB8B3D1),PopupRgb(0x424158),PopupRgb(0xA29DBB)};
+ if(g_theme==L"emberveil-midnight")return {PopupRgb(0x101418),PopupRgb(0x353A3E),PopupRgb(0xF5E6C8),PopupRgb(0xB8A98A),PopupRgb(0x353A3E),PopupRgb(0xFFBC5E)};
+ if(g_theme==L"emerald-mosque")return {PopupRgb(0x102B27),PopupRgb(0x386057),PopupRgb(0xF3E8CF),PopupRgb(0xB6C9BD),PopupRgb(0x386057),PopupRgb(0xD4AF70)};
+ if(g_theme==L"dracula")return {PopupRgb(0x282A36),PopupRgb(0x44475A),PopupRgb(0xF8F8F2),PopupRgb(0xBFBFD0),PopupRgb(0x44475A),PopupRgb(0xBD93F9)};
+ if(g_theme==L"nord")return {PopupRgb(0x2E3440),PopupRgb(0x4C566A),PopupRgb(0xECEFF4),PopupRgb(0xD8DEE9),PopupRgb(0x4C566A),PopupRgb(0x88C0D0)};
+ if(g_theme==L"gruvbox")return {PopupRgb(0x282828),PopupRgb(0x504945),PopupRgb(0xEBDBB2),PopupRgb(0xA89984),PopupRgb(0x504945),PopupRgb(0xFABD2F)};
+ if(g_theme==L"tokyo-night")return {PopupRgb(0x1A1B26),PopupRgb(0x414868),PopupRgb(0xC0CAF5),PopupRgb(0xA9B1D6),PopupRgb(0x414868),PopupRgb(0x7AA2F7)};
+ if(g_theme==L"solarized-dark")return {PopupRgb(0x002B36),PopupRgb(0x586E75),PopupRgb(0x93A1A1),PopupRgb(0x839496),PopupRgb(0x586E75),PopupRgb(0xB58900)};
+ if(g_theme==L"solarized-light")return {PopupRgb(0xFDF6E3),PopupRgb(0xEEE8D5),PopupRgb(0x586E75),PopupRgb(0x657B83),PopupRgb(0x93A1A1),PopupRgb(0x268BD2)};
+ if(WindowsLightMode())return {PopupRgb(0xFAFAFA),PopupRgb(0xD1D1D1),PopupRgb(0x202020),PopupRgb(0x666666),PopupRgb(0xD1D1D1),GetSysColor(COLOR_HIGHLIGHT)};
+ return {PopupRgb(0x202020),PopupRgb(0x505050),PopupRgb(0xF4F4F4),PopupRgb(0xB8B8B8),PopupRgb(0x505050),GetSysColor(COLOR_HIGHLIGHT)};
+}
+static void PaintPrayerPopup(HWND hwnd){
+ PAINTSTRUCT ps{};HDC dc=BeginPaint(hwnd,&ps);if(!dc)return;
+ RECT r{};GetClientRect(hwnd,&r);auto colors=PopupTheme();
+ HBRUSH bg=CreateSolidBrush(colors.bg);FillRect(dc,&r,bg);DeleteObject(bg);
+ HPEN border=CreatePen(PS_SOLID,1,colors.border);HGDIOBJ prevPen=SelectObject(dc,border);
+ HGDIOBJ oldBrush=SelectObject(dc,GetStockObject(NULL_BRUSH));Rectangle(dc,0,0,r.right,r.bottom);
+ SelectObject(dc,oldBrush);SelectObject(dc,prevPen);DeleteObject(border);
+ SetBkMode(dc,TRANSPARENT);
+ HFONT font=CreateFontW(-15,0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,DEFAULT_PITCH,L"Segoe UI");
+ HGDIOBJ oldFont=SelectObject(dc,font);
+ auto line=[&](const std::wstring& value,int left,int top,int right,int height,COLORREF color,UINT flags){
+   RECT rect{left,top,right,top+height};SetTextColor(dc,color);
+   DrawTextW(dc,value.c_str(),-1,&rect,flags|DT_SINGLELINE|DT_VCENTER|DT_NOPREFIX|DT_END_ELLIPSIS);
+ };
+ RECT nameRect{14,9,r.right-14,53};SetTextColor(dc,colors.text);
+ DrawTextW(dc,g_mosqueName.c_str(),-1,&nameRect,DT_CENTER|DT_WORDBREAK|DT_NOPREFIX|DT_END_ELLIPSIS);
+ bool hijri=!g_hijriDate.empty();if(hijri)line(g_hijriDate,14,54,r.right-14,19,colors.muted,DT_CENTER);
+ int topRule=hijri?85:65,bottomRule=r.bottom-34;
+ HPEN rule=CreatePen(PS_SOLID,1,colors.rule);prevPen=SelectObject(dc,rule);
+ MoveToEx(dc,12,topRule,nullptr);LineTo(dc,r.right-12,topRule);
+ MoveToEx(dc,12,bottomRule,nullptr);LineTo(dc,r.right-12,bottomRule);
+ SelectObject(dc,prevPen);DeleteObject(rule);
+ int firstRow=topRule+12+((bottomRule-12)-(topRule+12)-5*25)/2;
+ for(int i=0;i<5;i++){
+   std::wstring time=L"--:--";
+   if(i<(int)g_today.size()){
+     wchar_t b[16];swprintf(b,16,L"%02d:%02d",g_today[i].minute/60,g_today[i].minute%60);time=b;
+   }
+   int y=firstRow+i*25;
+   line(kNames[i],20,y,r.right-20,23,colors.text,DT_LEFT);
+   line(time,20,y,r.right-20,23,colors.text,DT_RIGHT);
+ }
+ line(g_label+L" - in "+g_countdown,12,bottomRule+5,r.right-12,24,colors.footer,DT_CENTER);
+ SelectObject(dc,oldFont);DeleteObject(font);EndPaint(hwnd,&ps);
+}
+// A low-level mouse hook receives mouse-down events even when clicking a
+// taskbar control that does not activate another top-level window.
+// Never swallow input or touch XAML from the hook callback.
+static HHOOK g_popupMouseHook=nullptr;
+static constexpr UINT kPopupOutsideClick=WM_APP+47;
 
-    HPEN rule=CreatePen(PS_SOLID,1,g_palette.popupRule);
-    HGDIOBJ prev=SelectObject(mem,rule);
-
-    MoveToEx(mem,padding,topRule,nullptr);
-    LineTo(mem,r.right-padding,topRule);
-
-    MoveToEx(mem,padding,bottomRule,nullptr);
-    LineTo(mem,r.right-padding,bottomRule);
-
-    SelectObject(mem,prev);
-    DeleteObject(rule);
-
-    // Distribute the prayer rows evenly between the separators.
-    const int listTop=topRule+padding;
-    const int listBottom=bottomRule-padding;
-    const int availableHeight=listBottom-listTop;
-    const int contentHeight=5*rowHeight;
-    const int firstRow=listTop+(availableHeight-contentHeight)/2;
-
-    for(int i=0;i<5;i++){
-        std::wstring time=L"--:--";
-
-        if(i<(int)g_today.size()){
-            wchar_t b[16];
-            swprintf(b,16,L"%02d:%02d",
-                     g_today[i].minute/60,
-                     g_today[i].minute%60);
-            time=b;
+static bool PointInsidePill(POINT screenPoint) {
+    HWND taskbar=taskwin::FindCurrentProcessTaskbarWnd();
+    if(!taskbar || !g_pill) return false;
+    try {
+        RECT bar{};GetWindowRect(taskbar,&bar);
+        auto transform=g_pill.TransformToVisual(nullptr);
+        auto origin=transform.TransformPoint({0,0});
+        auto corner=transform.TransformPoint({(float)g_pill.ActualWidth(),
+                                              (float)g_pill.ActualHeight()});
+        double scale=(double)GetDpiForWindow(taskbar)/96.0;
+        RECT pill{
+            bar.left+(LONG)std::lround(origin.X*scale),
+            bar.top+(LONG)std::lround(origin.Y*scale),
+            bar.left+(LONG)std::lround(corner.X*scale),
+            bar.top+(LONG)std::lround(corner.Y*scale)
+        };
+        return pill.right>pill.left && pill.bottom>pill.top &&
+               PtInRect(&pill,screenPoint);
+    }catch(...) {return false;}
+}
+static LRESULT CALLBACK PopupMouseHookProc(int code,WPARAM wp,LPARAM lp) {
+    if(code==HC_ACTION && (wp==WM_LBUTTONDOWN || wp==WM_RBUTTONDOWN ||
+                            wp==WM_MBUTTONDOWN || wp==WM_XBUTTONDOWN) &&
+       g_popup && IsWindowVisible(g_popup)) {
+        auto data=reinterpret_cast<MSLLHOOKSTRUCT const*>(lp);
+        if(data) {
+            RECT bounds{};GetWindowRect(g_popup,&bounds);
+            if(!PtInRect(&bounds,data->pt) && !PointInsidePill(data->pt))
+                PostMessageW(g_popup,kPopupOutsideClick,0,0);
         }
-
-        int y=firstRow+i*rowHeight;
-
-        line(kNames[i],20,y,r.right-20,textHeight,
-             g_palette.popupText,DT_LEFT);
-
-        line(time,20,y,r.right-20,textHeight,
-             g_palette.popupText,DT_RIGHT);
     }
-
-    // Footer.
-    std::wstring footer=g_label+L" - in "+g_countdown;
-    line(footer,12,bottomRule+5,r.right-12,footerHeight,
-         g_palette.popupFooter,DT_CENTER);
-
-    SelectObject(mem,oldFont);
-    DeleteObject(font);
-
-    BitBlt(dc,0,0,r.right,r.bottom,mem,0,0,SRCCOPY);
-
-    SelectObject(mem,oldBmp);
-    DeleteObject(bmp);
-    DeleteDC(mem);
-    EndPaint(hwnd,&ps);
+    return CallNextHookEx(g_popupMouseHook,code,wp,lp);
 }
-
-
-static LRESULT CALLBACK PopupProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
+static void StopPopupMouseHook(){
+    if(g_popupMouseHook){UnhookWindowsHookEx(g_popupMouseHook);g_popupMouseHook=nullptr;}
+}
+static void HidePrayerPopup(){
+    g_popupAutoCloseDeadline=0;
+    if(g_popup && IsWindow(g_popup))ShowWindow(g_popup,SW_HIDE);
+    StopPopupMouseHook();
+}
+static void StartPopupMouseHook(){
+    StopPopupMouseHook();
+    HMODULE module=nullptr;
+    GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                        GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                        reinterpret_cast<LPCWSTR>(&PopupMouseHookProc),&module);
+    g_popupMouseHook=SetWindowsHookExW(WH_MOUSE_LL,PopupMouseHookProc,module,0);
+    if(!g_popupMouseHook)
+        Wh_Log(L"[Mawaqit] Mouse hook installation failed: %lu",GetLastError());
+}
+static LRESULT CALLBACK PrayerPopupProc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
  switch(msg){
- case WM_NCHITTEST:return HTCLIENT;
- case WM_SETCURSOR:SetCursor(LoadCursorW(nullptr,IDC_ARROW));return TRUE;
  case WM_MOUSEACTIVATE:return MA_NOACTIVATE;
+ case kPopupOutsideClick:HidePrayerPopup();return 0;
+ case WM_KEYDOWN:
+   if(wp==VK_ESCAPE){HidePrayerPopup();return 0;}
+   break;
+ case WM_PAINT: PaintPrayerPopup(hwnd); return 0;
  case WM_ERASEBKGND:return 1;
- case WM_PAINT:PaintPopup(hwnd);return 0;
- case WM_CLOSE:ShowWindow(hwnd,SW_HIDE);return 0;
- case WM_DESTROY:if(g_popup==hwnd)g_popup=nullptr;return 0;
- }
- return DefWindowProcW(hwnd,msg,wp,lp);
-}
-
-static void PositionPopup(){
- if(!g_popup||!g_window)return;
- RECT pill{},work{};GetWindowRect(g_window,&pill);
- HMONITOR monitor=MonitorFromWindow(g_window,MONITOR_DEFAULTTONEAREST);
- MONITORINFO mi{};mi.cbSize=sizeof(mi);
- if(!GetMonitorInfoW(monitor,&mi))return;work=mi.rcWork;
- // Top-mounted taskbar: prefer below. Bottom-mounted: prefer above.
- RECT taskbar{};HWND bar=FindWindowW(L"Shell_TrayWnd",nullptr);
- if(bar)GetWindowRect(bar,&taskbar);
- constexpr int width=270,height=252;
- bool topBar=taskbar.top<=mi.rcMonitor.top+10;
- int x=pill.left+(pill.right-pill.left-width)/2;
- int y=topBar?taskbar.bottom+5:taskbar.top-height-5;
- if(x<mi.rcMonitor.left+4)x=mi.rcMonitor.left+4;
- if(x+width>mi.rcMonitor.right-4)x=mi.rcMonitor.right-width-4;
- if(y+height>mi.rcMonitor.bottom)y=mi.rcMonitor.bottom-height-4;
- if(y<mi.rcMonitor.top)y=mi.rcMonitor.top+4;
- SetWindowPos(g_popup,HWND_TOPMOST,x,y,width,height,SWP_NOACTIVATE|SWP_SHOWWINDOW);
-}
-
-static void TogglePopup(){
- if(!g_enablePopup||!g_popup)return;
- if(IsWindowVisible(g_popup)){ShowWindow(g_popup,SW_HIDE);return;}
- LoadMetadata();g_lastMouseDown=(GetAsyncKeyState(VK_LBUTTON)&0x8000)!=0;PositionPopup();InvalidateRect(g_popup,nullptr,FALSE);
-}
-
-
-static void Position(HWND hwnd) {
-    HWND taskbar=GetParent(hwnd);
-
-    if(!taskbar || !IsWindow(taskbar)){
-        ShowWindow(hwnd,SW_HIDE);
-        return;
-    }
-
-    HWND tray=FindWindowExW(
-        taskbar,nullptr,L"TrayNotifyWnd",nullptr
-    );
-
-    RECT trayRect{},clientRect{};
-
-    if(!tray ||
-       !GetWindowRect(tray,&trayRect) ||
-       !GetClientRect(taskbar,&clientRect)){
-        ShowWindow(hwnd,SW_HIDE);
-        return;
-    }
-
-    POINT trayPoint{trayRect.left,trayRect.top};
-
-    if(!ScreenToClient(taskbar,&trayPoint)){
-        ShowWindow(hwnd,SW_HIDE);
-        return;
-    }
-
-    const int taskbarHeight=clientRect.bottom-clientRect.top;
-
-    if(taskbarHeight<=0){
-        ShowWindow(hwnd,SW_HIDE);
-        return;
-    }
-
-    // Automatic height: taskbar height minus breathing room.
-    const int autoHeight=std::max(12,taskbarHeight-12);
-
-    // Zero means automatic; positive values are manual.
-    const int requestedHeight=
-        g_pillHeight==0?autoHeight:g_pillHeight;
-
-    // Keep the widget within the available taskbar height.
-    const int height=std::min(requestedHeight,taskbarHeight);
-
-    const int x=trayPoint.x-g_width-g_trayGap+g_margins.left-g_margins.right;
-    const int y=(taskbarHeight-height)/2+g_margins.top-g_margins.bottom;
-
-    if(x<0 || x+g_width>clientRect.right){
-        ShowWindow(hwnd,SW_HIDE);
-        return;
-    }
-
-    SetWindowPos(
-        hwnd,HWND_TOP,
-        x,y,g_width,height,
-        SWP_NOACTIVATE|SWP_SHOWWINDOW
-    );
-}
-
-
-static DWORD WINAPI UpdateWorker(void*) {
- HANDLE events[]={g_stopEvent,g_settingsEvent};
- DWORD waitMs=0;
- for(;;) {
-  DWORD result=WaitForMultipleObjects(2,events,FALSE,waitMs);
-  if(result==WAIT_OBJECT_0 || result==WAIT_FAILED)return 0;
-  if(result!=WAIT_TIMEOUT && result!=WAIT_OBJECT_0+1)return 0;
-  std::wstring mosque;
-  int hours;
-  AcquireSRWLockShared(&g_updaterLock);
-  mosque=g_mosque;
-  hours=g_refreshHours;
-  ReleaseSRWLockShared(&g_updaterLock);
-  bool ok=false;
-  try { ok=NativeUpdater::Run(mosque); }
-  catch (const std::exception& e) { Wh_Log(L"[Emberveil] Update failed: %hs",e.what()); }
-  catch (...) { Wh_Log(L"[Emberveil] Update failed (unknown error)"); }
-  if(ok) {
-   Wh_Log(L"[Emberveil] Schedule updated successfully");
-   HWND taskbar=FindWindowW(L"Shell_TrayWnd",nullptr);
-   HWND hwnd=taskbar?FindWindowExW(taskbar,nullptr,kClass,nullptr):nullptr;
-   if(hwnd)PostMessageW(hwnd,WM_EMBERVEIL_UPDATED,0,0);
-  }
-  // A change during the HTTP request should not be lost.
-  if(WaitForSingleObject(g_settingsEvent,0)==WAIT_OBJECT_0){waitMs=0;continue;}
-  AcquireSRWLockShared(&g_updaterLock);
-  hours=g_refreshHours;
-  ReleaseSRWLockShared(&g_updaterLock);
-  waitMs=(DWORD)(ok?hours:1)*60u*60u*1000u;
- }
-}
-
-static LRESULT CALLBACK Proc(HWND hwnd,UINT msg,WPARAM wp,LPARAM lp){
- switch(msg){
- case WM_EMBERVEIL_APPLY_SETTINGS:{
-  const SettingsSnapshot* s=reinterpret_cast<const SettingsSnapshot*>(lp);
-  if(!s)return 0;
-  g_width=s->width;g_margins=s->margins;g_trayGap=s->trayGap;
-  g_pillHeight=s->pillHeight;g_cornerRadius=s->cornerRadius;
-  g_fontSize=s->fontSize;
-  g_padding=s->padding;
-  g_theme=s->theme;
-  g_showNextPrayer=s->showNextPrayer;
-  g_showCountdown=s->showCountdown;
-  g_enablePopup=s->enablePopup;
-  if(!g_enablePopup && g_popup && IsWindowVisible(g_popup))ShowWindow(g_popup,SW_HIDE);
-  g_palette=ReadPalette(g_theme);
-  Position(hwnd);
-  InvalidateRect(hwnd,nullptr,FALSE);
-  if(g_popup && IsWindowVisible(g_popup))PositionPopup();
-  Wh_Log(L"[Emberveil] Visual settings applied live");
-  return 0;
- }
- case WM_EMBERVEIL_UPDATED:
-  g_loadedDate.clear();g_today.clear();g_tomorrow.clear();
-  LoadMetadata();UpdateCountdown();
-  InvalidateRect(hwnd,nullptr,FALSE);
-  if(g_popup)InvalidateRect(g_popup,nullptr,FALSE);
-  return 0;
- case WM_NCHITTEST:return HTCLIENT;
- case WM_SETCURSOR:SetCursor(LoadCursorW(nullptr,IDC_ARROW));return TRUE;
- case WM_MOUSEACTIVATE:return MA_NOACTIVATE;
- case WM_LBUTTONUP:TogglePopup();return 0;
- case WM_ERASEBKGND:return 1;
- case WM_PAINT:{
-  PAINTSTRUCT ps;HDC dc=BeginPaint(hwnd,&ps);RECT r;GetClientRect(hwnd,&r);
-  HDC mem=CreateCompatibleDC(dc);HBITMAP bmp=CreateCompatibleBitmap(dc,r.right,r.bottom);HGDIOBJ old=SelectObject(mem,bmp);
-  // Black is the layered-window transparency key; the pill alone remains visible.
-  HBRUSH clear=CreateSolidBrush(RGB(0,0,0));FillRect(mem,&r,clear);DeleteObject(clear);
-  
-  // Draw the pill inside the window, leaving room for rounded corners.
-  constexpr int insetX = 2;
-  constexpr int insetY = 2;
-
-  RECT pill = {
-      insetX,
-      insetY,
-      r.right - insetX,
-      r.bottom - insetY
-  };
-
-  const int pillWidth = pill.right - pill.left;
-  const int pillHeight = pill.bottom - pill.top;
-
-  const int radius = std::clamp(
-      g_cornerRadius,
-      0,
-      std::min(pillWidth, pillHeight) / 2
-  );
-
-  HBRUSH bg = CreateSolidBrush(g_palette.pillBackground);
-  HGDIOBJ oldBrush = SelectObject(mem, bg);
-  HGDIOBJ oldPen = SelectObject(mem, GetStockObject(NULL_PEN));
-
-  if (radius > 0) {
-      RoundRect(
-          mem,
-          pill.left, pill.top,
-          pill.right, pill.bottom,
-          radius * 2, radius * 2
-      );
-  } else {
-      Rectangle(
-          mem,
-          pill.left, pill.top,
-          pill.right, pill.bottom
-      );
-  }
-
-  SelectObject(mem, oldPen);
-  SelectObject(mem, oldBrush);
-  DeleteObject(bg);
-                 
-    HFONT font=CreateFontW(
-        -g_fontSize,0,0,0,FW_MEDIUM,
-        FALSE,FALSE,FALSE,
-        DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,
-        CLIP_DEFAULT_PRECIS,CLEARTYPE_QUALITY,
-        DEFAULT_PITCH,L"Segoe UI"
-    );
-  HGDIOBJ oldfont=SelectObject(mem,font);SetBkMode(mem,TRANSPARENT);
-  // Padding constrains only the text. The pill's size and position stay unchanged.
-  const RECT content={
-      std::min<int>(r.right,g_padding.left),
-      std::min<int>(r.bottom,g_padding.top),
-      std::max<int>(0,r.right-g_padding.right),
-      std::max<int>(0,r.bottom-g_padding.bottom)
-  };
-  const int left=std::min(content.left,content.right);
-  const int right=std::max<int>(left,content.right);
-  const int top=std::min(content.top,content.bottom);
-  const int bottom=std::max<int>(top,content.bottom);
-  const bool showLabel=g_showNextPrayer;
-  const bool showCount=g_showCountdown;
-  const wchar_t* separator=L"·";
-  SIZE labelSize{},separatorSize{},countSize{};
-  if(showLabel)GetTextExtentPoint32W(mem,g_label.c_str(),(int)g_label.size(),&labelSize);
-  if(showLabel&&showCount)GetTextExtentPoint32W(mem,separator,1,&separatorSize);
-  if(showCount)GetTextExtentPoint32W(mem,g_countdown.c_str(),(int)g_countdown.size(),&countSize);
-  constexpr int gap=7;
-  int total=labelSize.cx+countSize.cx;
-  if(showLabel&&showCount)total+=separatorSize.cx+2*gap;
-  int x=left+(right-left-total)/2;
-  // Clip every text element to the padded content area, including on narrow pills.
-  const int savedDC=SaveDC(mem);
-  IntersectClipRect(mem,left,top,right,bottom);
-  if(showLabel){
-   RECT labelRect={x,top,x+labelSize.cx,bottom};
-   SetTextColor(mem,g_palette.pillText);
-   DrawTextW(mem,g_label.c_str(),-1,&labelRect,DT_SINGLELINE|DT_VCENTER|DT_LEFT|DT_NOPREFIX);
-   x+=labelSize.cx;
-  }
-  if(showLabel&&showCount){
-   x+=gap;
-   RECT separatorRect={x,top,x+separatorSize.cx,bottom};
-   SetTextColor(mem,g_palette.pillSeparator);
-   DrawTextW(mem,separator,-1,&separatorRect,DT_SINGLELINE|DT_VCENTER|DT_LEFT|DT_NOPREFIX);
-   x+=separatorSize.cx+gap;
-  }
-  if(showCount){
-   RECT countdownRect={x,top,x+countSize.cx,bottom};
-   SetTextColor(mem,g_palette.pillCountdown);
-   DrawTextW(mem,g_countdown.c_str(),-1,&countdownRect,DT_SINGLELINE|DT_VCENTER|DT_LEFT|DT_NOPREFIX);
-  }
-  RestoreDC(mem,savedDC);
-  BitBlt(dc,0,0,r.right,r.bottom,mem,0,0,SRCCOPY);SelectObject(mem,oldfont);DeleteObject(font);SelectObject(mem,old);DeleteObject(bmp);DeleteDC(mem);EndPaint(hwnd,&ps);return 0;
- }
+ case WM_CLOSE:HidePrayerPopup();return 0;
  case WM_TIMER:{
-  if(wp==1){
-   UpdateCountdown();Position(hwnd);InvalidateRect(hwnd,nullptr,FALSE);
-   if(g_popup&&IsWindowVisible(g_popup)){
-    PositionPopup();InvalidateRect(g_popup,nullptr,FALSE);
-   }
-  }else if(wp==2){
-   bool down=(GetAsyncKeyState(VK_LBUTTON)&0x8000)!=0;
-   if(g_popup&&IsWindowVisible(g_popup)&&down&&!g_lastMouseDown){
-    POINT p{};GetCursorPos(&p);RECT pill{},popup{};
-    GetWindowRect(hwnd,&pill);GetWindowRect(g_popup,&popup);
-    if(!PtInRect(&pill,p)&&!PtInRect(&popup,p))ShowWindow(g_popup,SW_HIDE);
-   }
-   g_lastMouseDown=down;
-  }
-  return 0;
+   if(wp==1){
+     // WS_EX_NOACTIVATE keeps focus in the previously active application.
+     // Poll Escape's transition bit to support dismissal without stealing focus.
+     if(GetAsyncKeyState(VK_ESCAPE)&1){HidePrayerPopup();return 0;}
+     if(g_popupAutoCloseDeadline && GetTickCount64()>=g_popupAutoCloseDeadline){
+       Wh_Log(L"[Mawaqit] Popup auto-close timeout reached");
+       HidePrayerPopup();return 0;
+     }
+     InvalidateRect(hwnd,nullptr,FALSE);
+   }return 0;
  }
- case WM_CLOSE:DestroyWindow(hwnd);return 0;
- case WM_DESTROY:KillTimer(hwnd,1);KillTimer(hwnd,2);if(g_popup){DestroyWindow(g_popup);g_popup=nullptr;}PostQuitMessage(0);return 0;
+ case WM_DESTROY:StopPopupMouseHook();KillTimer(hwnd,1);if(g_popup==hwnd)g_popup=nullptr;return 0;
  }
  return DefWindowProcW(hwnd,msg,wp,lp);
 }
-
-static DWORD WINAPI Thread(void*){
- g_palette=ReadPalette(g_theme);
- WNDCLASSEXW wc{};wc.cbSize=sizeof(wc);wc.lpfnWndProc=Proc;wc.hInstance=GetModuleHandleW(nullptr);wc.lpszClassName=kClass;wc.hCursor=LoadCursorW(nullptr,IDC_ARROW);
- if(!RegisterClassExW(&wc)&&GetLastError()!=ERROR_CLASS_ALREADY_EXISTS)return 1;
- HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
- if (!taskbar) return 2;
- HWND hwnd=CreateWindowExW(WS_EX_LAYERED,kClass,L"Emberveil Mawaqit",WS_CHILD|WS_VISIBLE,0,0,g_width,30,taskbar,nullptr,wc.hInstance,nullptr);
- if(!hwnd)return 2;
- WNDCLASSEXW popupClass{};popupClass.cbSize=sizeof(popupClass);
- popupClass.lpfnWndProc=PopupProc;popupClass.hInstance=wc.hInstance;popupClass.lpszClassName=kPopupClass;popupClass.hCursor=LoadCursorW(nullptr,IDC_ARROW);
- RegisterClassExW(&popupClass);
- g_popup=CreateWindowExW(WS_EX_TOOLWINDOW|WS_EX_NOACTIVATE|WS_EX_TOPMOST|WS_EX_LAYERED,
-  kPopupClass,L"Emberveil Prayer Times",WS_POPUP,0,0,270,252,nullptr,nullptr,wc.hInstance,nullptr);
- if(g_popup)SetLayeredWindowAttributes(g_popup,RGB(0,0,0),0,LWA_COLORKEY);
- LoadMetadata();
- SetLayeredWindowAttributes(hwnd,RGB(0,0,0),0,LWA_COLORKEY);g_window=hwnd;UpdateCountdown();Position(hwnd);SetTimer(hwnd,1,1000,nullptr);SetTimer(hwnd,2,50,nullptr);
- MSG msg;while(GetMessageW(&msg,nullptr,0,0)>0){TranslateMessage(&msg);DispatchMessageW(&msg);}g_window=nullptr;return 0;
-}
-
-BOOL Wh_ModInit(){
- Wh_Log(L"[Emberveil] Wh_ModInit called");
- SettingsSnapshot settings=ReadSettings();
- g_width=settings.width;g_margins=settings.margins;
- g_trayGap=settings.trayGap;g_pillHeight=settings.pillHeight;
- g_cornerRadius=settings.cornerRadius;g_padding=settings.padding;
- g_fontSize=settings.fontSize;
- g_theme=settings.theme;
- g_showNextPrayer=settings.showNextPrayer;
- g_showCountdown=settings.showCountdown;
- g_enablePopup=settings.enablePopup;
- ApplyUpdaterSettings(settings);
- g_stopEvent=CreateEventW(nullptr,TRUE,FALSE,nullptr);
- if(!g_stopEvent)return FALSE;
- g_settingsEvent=CreateEventW(nullptr,FALSE,FALSE,nullptr);
- if(!g_settingsEvent){CloseHandle(g_stopEvent);g_stopEvent=nullptr;return FALSE;}
- g_thread=CreateThread(nullptr,0,Thread,nullptr,0,&g_threadId);
- if(!g_thread){CloseHandle(g_settingsEvent);g_settingsEvent=nullptr;CloseHandle(g_stopEvent);g_stopEvent=nullptr;return FALSE;}
- g_updaterThread=CreateThread(nullptr,0,UpdateWorker,nullptr,0,nullptr);
- if(!g_updaterThread)Wh_Log(L"[Emberveil] Could not start background updater");
- return TRUE;
-}
-
-void Wh_ModUninit(){
- if(g_stopEvent)SetEvent(g_stopEvent);
- if(g_updaterThread){WaitForSingleObject(g_updaterThread,INFINITE);CloseHandle(g_updaterThread);g_updaterThread=nullptr;}
- if(g_settingsEvent){CloseHandle(g_settingsEvent);g_settingsEvent=nullptr;}
- if(g_stopEvent){CloseHandle(g_stopEvent);g_stopEvent=nullptr;}
- HWND taskbar=FindWindowW(L"Shell_TrayWnd",nullptr);
- HWND hwnd=taskbar?FindWindowExW(taskbar,nullptr,kClass,nullptr):nullptr;
- if(hwnd)PostMessageW(hwnd,WM_CLOSE,0,0);
- if(g_thread){WaitForSingleObject(g_thread,3000);CloseHandle(g_thread);g_thread=nullptr;}
-}
-
-void Wh_ModSettingsChanged() {
-    Wh_Log(L"[Emberveil] Settings callback reached!");
-    SettingsSnapshot settings = ReadSettings();
-    Wh_Log(
-        L"[Emberveil] New Width setting: %d",
-        settings.width
-    );
-    HWND taskbar = FindWindowW(L"Shell_TrayWnd", nullptr);
-    HWND hwnd = taskbar
-        ? FindWindowExW(taskbar, nullptr, kClass, nullptr)
-        : nullptr;
-    if (!hwnd) {
-        Wh_Log(L"[Emberveil] Widget window not found");
-        return;
+static wchar_t g_popupClassName[128]{};
+static HINSTANCE g_popupClassInstance=nullptr;
+static bool g_popupClassRegistered=false;
+static void DestroyPrayerPopup(){
+    StopPopupMouseHook();
+    if(g_popup){DestroyWindow(g_popup);g_popup=nullptr;}
+    if(g_popupClassRegistered){
+        if(!UnregisterClassW(g_popupClassName,g_popupClassInstance))
+            Wh_Log(L"[Mawaqit] Popup class unregister failed: %lu",GetLastError());
+        else g_popupClassRegistered=false;
     }
-    SendMessageW(
-        hwnd,
-        WM_EMBERVEIL_APPLY_SETTINGS,
-        0,
-        reinterpret_cast<LPARAM>(&settings)
-    );
-    ApplyUpdaterSettings(settings);
-    Wh_Log(L"[Emberveil] Settings update delivered");
+}
+[[maybe_unused]] static void TogglePrayerPopup(){
+
+ if(!g_enablePopup){Wh_Log(L"[Mawaqit] Popup click ignored: disabled by settings");return;}
+ if(g_popup && IsWindowVisible(g_popup)){HidePrayerPopup();return;}
+ if(!g_popup){
+
+   // Register a unique class per loaded mod instance. A previous Windhawk
+   // hot-reload can leave a process-wide class pointing at unloaded code.
+   if(!g_popupClassName[0]){
+       LARGE_INTEGER stamp{};QueryPerformanceCounter(&stamp);
+       swprintf_s(g_popupClassName,L"MawaqitPopup_%lu_%llX_%p",
+                  GetCurrentProcessId(),(unsigned long long)stamp.QuadPart,
+                  reinterpret_cast<void*>(&PrayerPopupProc));
+   }
+   if(!g_popupClassInstance){
+       HMODULE module=nullptr;
+       if(!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                             GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                             reinterpret_cast<LPCWSTR>(&PrayerPopupProc),&module)){
+           Wh_Log(L"[Mawaqit] Popup module lookup failed: %lu",GetLastError());
+           return;
+       }
+       g_popupClassInstance=module;
+   }
+   WNDCLASSEXW wc{};wc.cbSize=sizeof(wc);wc.lpfnWndProc=PrayerPopupProc;
+   wc.hInstance=g_popupClassInstance;
+   wc.lpszClassName=g_popupClassName;wc.hCursor=LoadCursorW(nullptr,IDC_ARROW);
+   if(!g_popupClassRegistered){
+       ATOM atom=RegisterClassExW(&wc);
+       Wh_Log(L"[Mawaqit] class-register result=%u error=%lu",(unsigned)atom,atom?0:GetLastError());
+       if(!atom)return;
+       g_popupClassRegistered=true;
+   }
+
+   g_popup=CreateWindowExW(WS_EX_TOOLWINDOW|WS_EX_NOACTIVATE|WS_EX_TOPMOST,
+       g_popupClassName,L"Mawaqit Prayer Times",WS_POPUP,0,0,270,252,nullptr,nullptr,wc.hInstance,nullptr);
+
+   if(!g_popup){Wh_Log(L"[Mawaqit] Popup creation failed: %lu",GetLastError());return;}
+
+   SetTimer(g_popup,1,150,nullptr);
+
+ }
+
+ LoadMetadata();
+
+ UpdateCountdown();
+
+ HWND taskbar=taskwin::FindCurrentProcessTaskbarWnd();
+ RECT bar{};if(taskbar)GetWindowRect(taskbar,&bar);
+ RECT monitor{};MONITORINFO mi{};mi.cbSize=sizeof(mi);
+ HMONITOR mon=MonitorFromWindow(taskbar?taskbar:g_popup,MONITOR_DEFAULTTONEAREST);
+ if(GetMonitorInfoW(mon,&mi))monitor=mi.rcMonitor;
+ constexpr int w=270,h=252;
+ bool top=bar.top<=monitor.top+10;
+ int x=bar.left+(bar.right-bar.left-w)/2;
+ // Center below the XAML pill if possible, otherwise use taskbar center.
+ if(g_pill){
+   try{auto transform=g_pill.TransformToVisual(nullptr);auto pt=transform.TransformPoint({0,0});
+       x=bar.left+(int)pt.X+(int)g_pill.ActualWidth()/2-w/2;}catch(...){}
+ }
+ int y=top?bar.bottom+5:bar.top-h-5;
+ x=std::max<int>(monitor.left+4,std::min<int>(x,monitor.right-w-4));
+ y=std::max<int>(monitor.top+4,std::min<int>(y,monitor.bottom-h-4));
+ // Clip the Win32 popup itself, not only its painted background.
+ // The region is owned by the window after a successful SetWindowRgn call.
+
+ HRGN rounded=CreateRoundRectRgn(0,0,w+1,h+1,18,18);
+ if(rounded && !SetWindowRgn(g_popup,rounded,FALSE))DeleteObject(rounded);
+
+ SetWindowPos(g_popup,HWND_TOPMOST,x,y,w,h,SWP_NOACTIVATE|SWP_SHOWWINDOW);
+ // Arm only after the popup becomes visible; a subsequent opening re-arms.
+ int autoClose=g_popupAutoCloseSeconds.load();
+ g_popupAutoCloseDeadline=autoClose>0?GetTickCount64()+static_cast<ULONGLONG>(autoClose)*1000:0;
+ Wh_Log(L"[Mawaqit] Popup opened: auto-close=%d seconds",autoClose);
+
+ StartPopupMouseHook();
+
+ InvalidateRect(g_popup,nullptr,FALSE);
+
+}
+
+static constexpr wchar_t kSlotName[]=L"MawaqitTaskbarSlot";
+static constexpr wchar_t kLeaseName[]=L"MawaqitTaskbarLease";
+
+static FrameworkElement FindNamed(FrameworkElement const& root, wchar_t const* name, int depth=0) {
+    if(!root || depth>24) return nullptr;
+    if(root.Name()==name) return root;
+    int count=VisualTreeHelper::GetChildrenCount(root);
+    for(int i=0;i<count;i++) {
+        auto child=VisualTreeHelper::GetChild(root,i).try_as<FrameworkElement>();
+        if(auto found=FindNamed(child,name,depth+1)) return found;
+    }
+    return nullptr;
+}
+
+static Panel LiveTray() {
+    HWND wnd=taskwin::FindCurrentProcessTaskbarWnd();
+    if(!wnd) return nullptr;
+    auto xamlRoot=taskxaml::GetTaskbarXamlRoot(wnd);
+    if(!xamlRoot) return nullptr;
+    auto root=xamlRoot.Content().try_as<FrameworkElement>();
+    return FindNamed(root,L"SystemTrayFrameGrid").try_as<Panel>();
+}
+
+static void RemoveOnUiThread() {
+    DestroyPrayerPopup();
+    if(g_pill && g_tapRegistered){try{g_pill.Tapped(g_tapToken);}catch(...){}g_tapRegistered=false;}
+    auto parent=g_parent.get();
+    if(!parent) parent=LiveTray();
+    if(parent) {
+        for(int i=(int)parent.Children().Size()-1;i>=0;--i) {
+            auto fe=parent.Children().GetAt(i).try_as<FrameworkElement>();
+            if(fe && fe.Name()==kSlotName) parent.Children().RemoveAt(i);
+        }
+        if(!g_lease.markerName.empty()) {
+            if(!slot::Release(parent,g_lease))
+                Wh_Log(L"[Mawaqit] Could not release old lease; taskbar may have rebuilt");
+        }
+    }
+    g_placeholder={};g_parent={};g_lease={};
+    g_prayerText=nullptr;g_countdownText=nullptr;g_pill=nullptr;
+}
+
+static void InsertOnUiThread() {
+    if(g_stopping.load()) return;
+    auto parent=LiveTray();
+    if(!parent){Wh_Log(L"[Mawaqit] XAML tray not ready");return;}
+    if(slot::Classify(parent)==slot::Kind::Unsupported) {
+        Wh_Log(L"[Mawaqit] Unsupported tray panel: %s",slot::ClassName(parent).c_str());return;
+    }
+    // Existing slot? This prevents duplicates during repeated initialization.
+    for(auto child:parent.Children()) {
+        auto fe=child.try_as<FrameworkElement>();
+        if(fe && fe.Name()==kSlotName) {Wh_Log(L"[Mawaqit] Slot already exists");return;}
+    }
+    // Test 5A intentionally uses the beginning of the tray's native layout.
+    // This is not the old after-tray or Show Desktop placement experiment.
+    int slotIndex=0;
+    if(!slot::ResolveSlot(parent,slot::Anchor::BeforeIcons,slotIndex)) return;
+    double dpi=96.0;
+    if(auto wnd=taskwin::FindCurrentProcessTaskbarWnd()) dpi=(double)GetDpiForWindow(wnd);
+    double widthDip=(double)g_width*96.0/dpi;
+    Grid box;
+    box.Name(kSlotName);
+    box.Width(widthDip+(double)g_trayGap*96.0/dpi);
+    box.Height(g_pillHeight>0?std::min((double)g_pillHeight*96.0/dpi,48.0):30.0);
+    box.HorizontalAlignment(HorizontalAlignment::Center);
+    box.VerticalAlignment(VerticalAlignment::Center);
+    auto palette=ResolvePillPalette(g_theme);
+    SolidColorBrush background;
+    background.Color(palette.background);
+    Border pillSurface;
+    pillSurface.Background(background);
+    double radius=(double)g_cornerRadius*96.0/dpi;
+    pillSurface.CornerRadius({radius,radius,radius,radius});
+    pillSurface.Margin({0,0,(double)g_trayGap*96.0/dpi,0});
+    // Position offsets are visual only; the native slot remains reserved.
+    TranslateTransform offset;
+    offset.X((double)(g_margins.left-g_margins.right)*96.0/dpi);
+    offset.Y((double)(g_margins.top-g_margins.bottom)*96.0/dpi);
+    pillSurface.RenderTransform(offset);
+    pillSurface.Padding({(double)g_padding.left*96.0/dpi,
+                         (double)g_padding.top*96.0/dpi,
+                         (double)g_padding.right*96.0/dpi,
+                         (double)g_padding.bottom*96.0/dpi});
+    pillSurface.HorizontalAlignment(HorizontalAlignment::Stretch);
+    pillSurface.VerticalAlignment(VerticalAlignment::Stretch);
+    // Test 5B: XAML text controls in a reserved native taskbar layout slot.
+    StackPanel content;
+    content.Orientation(Orientation::Horizontal);
+    content.HorizontalAlignment(HorizontalAlignment::Center);
+    content.VerticalAlignment(VerticalAlignment::Center);
+    TextBlock prayer;
+    prayer.FontSize((double)g_fontSize*96.0/dpi);
+    prayer.VerticalAlignment(VerticalAlignment::Center);
+    prayer.Margin({5,0,4,0});
+    SolidColorBrush foreground;
+    foreground.Color(palette.foreground);
+    prayer.Foreground(foreground);
+    TextBlock countdown;
+    countdown.FontSize((double)g_fontSize*96.0/dpi);
+    countdown.VerticalAlignment(VerticalAlignment::Center);
+    countdown.Margin({4,0,5,0});
+    SolidColorBrush accent;
+    accent.Color(palette.countdown);
+    countdown.Foreground(accent);
+    prayer.Text(L"Loading...");
+    countdown.Text(L"--:--");
+    content.Children().Append(prayer);
+    if(g_theme==L"custom") {
+        TextBlock separator;
+        separator.Text(L"|");
+        separator.FontSize((double)g_fontSize*96.0/dpi);
+        separator.VerticalAlignment(VerticalAlignment::Center);
+        separator.Margin({0,0,0,0});
+        SolidColorBrush separatorBrush;
+        separatorBrush.Color(palette.separator);
+        separator.Foreground(separatorBrush);
+        content.Children().Append(separator);
+    }
+    content.Children().Append(countdown);
+    pillSurface.Child(content);
+    box.Children().Append(pillSurface);
+    if(!slot::AcquireAt(parent,slotIndex,kLeaseName,g_lease)) {
+        Wh_Log(L"[Mawaqit] Lease acquisition failed");return;
+    }
+    bool placed=false;
+    try {placed=slot::PlaceChild(parent,g_lease,box);} catch(...) {
+        slot::Release(parent,g_lease);throw;
+    }
+    if(!placed) {slot::Release(parent,g_lease);return;}
+    g_placeholder=box;
+    g_pill=box;
+    g_tapToken=box.Tapped([](auto const&,auto const&){TogglePrayerPopup();});
+    g_tapRegistered=true;
+    g_prayerText=prayer;
+    g_countdownText=countdown;
+    Wh_Log(L"[Mawaqit] Text controls attached, prayer=%d countdown=%d",
+        g_prayerText?1:0,g_countdownText?1:0);
+    g_parent=parent;
+    UpdateCountdown();
+    prayer.Text(g_showNext?g_label:L"");
+    countdown.Text(g_showCountdown?g_countdown:L"");
+    Wh_Log(L"[Mawaqit] Native XAML slot inserted: %d physical px, %.1f DIP, DPI %.0f",g_width,widthDip,dpi);
+}
+
+static void LogException(PCWSTR context) {
+    try {throw;} catch(winrt::hresult_error const& e) {
+        Wh_Log(L"[Mawaqit] %s failed HRESULT 0x%08X: %s",context,(unsigned)e.code().value,e.message().c_str());
+    } catch(...) {Wh_Log(L"[Mawaqit] %s failed",context);}
+}
+
+static bool OnTaskbarThread(folder_menus_dispatch::ThreadProc proc) {
+    HWND wnd=taskwin::FindCurrentProcessTaskbarWnd();
+    return wnd && folder_menus_dispatch::RunFromWindowThread(wnd,proc,nullptr,
+        L"Windhawk_Mawaqit_TaskbarDispatch");
+}
+
+static DWORD WINAPI StartWorker(void*) {
+    // Explorer may create the taskbar's XAML tree after Windhawk initialization.
+    for(int i=0;i<40 && !g_stopping.load();++i) {
+        bool inserted=false;
+        HWND wnd=taskwin::FindCurrentProcessTaskbarWnd();
+        if(wnd) inserted=OnTaskbarThread([](void*) {InsertOnUiThread();});
+        if(inserted && g_placeholder.get()) return 0;
+        Sleep(1500);
+    }
+    return 0;
+}
+static HANDLE g_worker=nullptr;
+
+static void UpdateClockOnUiThread() {
+    if(g_stopping.load())return;
+    UpdateCountdown();
+    auto prayer=g_prayerText;
+    auto countdown=g_countdownText;
+    if(prayer)prayer.Text(g_showNext?g_label:L"");
+    if(countdown)countdown.Text(g_showCountdown?g_countdown:L"");
+}
+
+// XAML DispatcherTimer did not tick in the taskbar's hosting context on the
+// tested Windows build. A Win32 waitable worker supplies the cadence; all
+// TextBlock writes still execute on the owning taskbar/XAML thread.
+static DWORD WINAPI CountdownWorker(void*) {
+    while(!g_stopping.load()) {
+        DWORD wait=WaitForSingleObject(g_stopEvent,1000);
+        if(wait!=WAIT_TIMEOUT) break;
+        if(g_stopping.load()) break;
+        if(!OnTaskbarThread([](void*){UpdateClockOnUiThread();})) {
+            static unsigned failures=0;
+            if(++failures<=3 || failures%60==0)
+                Wh_Log(L"[Mawaqit] Countdown UI dispatch failed (%u)",failures);
+        }
+    }
+    return 0;
+}
+
+static DWORD WINAPI ScheduleWorker(void*) {
+    DWORD delay=0;
+    while(!g_stopping.load()) {
+        HANDLE events[]={g_stopEvent,g_refreshEvent};
+        DWORD result=WaitForMultipleObjects(2,events,FALSE,delay);
+        if(result==WAIT_OBJECT_0 || result==WAIT_FAILED)return 0;
+        std::wstring mosque;int hours;
+        AcquireSRWLockShared(&g_settingsLock);
+        mosque=g_mosque;hours=g_refreshHours;
+        ReleaseSRWLockShared(&g_settingsLock);
+        Wh_Log(L"[Mawaqit] Refresh started: mosque=%s interval=%d hours",mosque.c_str(),hours);
+        bool ok=false;
+        try {ok=NativeUpdater::Run(mosque);}
+        catch(const std::exception& e){Wh_Log(L"[Mawaqit] Schedule update: %hs",e.what());}
+        catch(...){Wh_Log(L"[Mawaqit] Schedule update failed");}
+        if(g_stopping.load())return 0;
+        if(ok) {
+            Wh_Log(L"[Mawaqit] Schedule updated");
+            OnTaskbarThread([](void*){
+                g_loadedDate.clear();g_today.clear();g_tomorrow.clear();
+                LoadMetadata();UpdateClockOnUiThread();
+            });
+        }
+        delay=(DWORD)(ok?hours:1)*60u*60u*1000u;
+        Wh_Log(L"[Mawaqit] Refresh finished: success=%d next-delay=%lu ms",ok?1:0,(unsigned long)delay);
+    }
+    return 0;
+}
+
+static std::wstring ReadSetting(PCWSTR key) {
+    PCWSTR raw=Wh_GetStringSetting(key);
+    std::wstring result=raw?raw:L"";
+    if(raw)Wh_FreeStringSetting(raw);
+    return result;
+}
+static void LoadModSettings() {
+    auto theme=ReadSetting(L"General.Theme");
+    if(theme!=L"traditional" && theme!=L"catppuccin" && theme!=L"emberveil" &&
+       theme!=L"emberveil-midnight" && theme!=L"emerald-mosque" &&
+       theme!=L"dracula" && theme!=L"nord" && theme!=L"gruvbox" &&
+       theme!=L"tokyo-night" && theme!=L"solarized-dark" &&
+       theme!=L"solarized-light" && theme!=L"custom")theme=L"system";
+    g_theme=theme;
+    int width=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.Width");
+    g_width=(width>=180&&width<=400)?width:220;
+    int height=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.PillHeight");
+    g_pillHeight=(height>=0&&height<=100)?height:0;
+    int gap=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.TrayGap");
+    g_trayGap=(gap>=0&&gap<=100)?gap:0;
+    int radius=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.CornerRadius");
+    g_cornerRadius=(radius>=0&&radius<=30)?radius:13;
+    int font=Wh_GetIntSetting(L"AdvancedCustomization.LayoutSettings.FontSize");
+    g_fontSize=(font>=10&&font<=24)?font:15;
+    PCWSTR marginSetting=Wh_GetStringSetting(L"AdvancedCustomization.LayoutSettings.Margins");
+    if(marginSetting){g_margins=ParseInsets(marginSetting,-100,100);Wh_FreeStringSetting(marginSetting);}
+    PCWSTR paddingSetting=Wh_GetStringSetting(L"AdvancedCustomization.LayoutSettings.Padding");
+    if(paddingSetting){g_padding=ParseInsets(paddingSetting,0,100);Wh_FreeStringSetting(paddingSetting);}
+    g_showNext=Wh_GetIntSetting(L"Display.ShowNextPrayer")!=0;
+    g_showCountdown=Wh_GetIntSetting(L"Display.ShowCountdown")!=0;
+    g_enablePopup=Wh_GetIntSetting(L"Display.EnablePopup")!=0;
+    int autoClose=std::clamp(Wh_GetIntSetting(L"Display.PopupAutoCloseSeconds"),0,300);
+    g_popupAutoCloseSeconds.store(autoClose);
+    Wh_Log(L"[Mawaqit] Popup auto-close configured: %d seconds",autoClose);
+    std::wstring mosque=ReadSetting(L"General.Mosque");
+    if(mosque.empty())mosque=L"al-haram-makkah-saudi-arabia";
+    int hours=Wh_GetIntSetting(L"AdvancedCustomization.ModSettingsAdvanced.RefreshHours");
+    if(hours<1||hours>168)hours=24;
+    AcquireSRWLockExclusive(&g_settingsLock);
+    bool changed=g_mosque!=mosque || g_refreshHours!=hours;
+    g_mosque=mosque;g_refreshHours=hours;
+    ReleaseSRWLockExclusive(&g_settingsLock);
+    Wh_Log(L"[Mawaqit] Settings: next=%d countdown=%d popup=%d theme=%s mosque=%s refresh=%d h changed=%d",
+           g_showNext?1:0,g_showCountdown?1:0,g_enablePopup?1:0,g_theme.c_str(),mosque.c_str(),hours,changed?1:0);
+    if(changed && g_refreshEvent){
+        Wh_Log(L"[Mawaqit] Requesting schedule refresh after settings change");
+        SetEvent(g_refreshEvent);
+    }
+}
+
+BOOL Wh_ModInit() {
+    g_stopping=false;
+    LoadModSettings();
+    g_stopEvent=CreateEventW(nullptr,TRUE,FALSE,nullptr);
+    g_refreshEvent=CreateEventW(nullptr,FALSE,FALSE,nullptr);
+    if(!g_stopEvent||!g_refreshEvent) return FALSE;
+    folder_menus_dispatch::SetExceptionLogger(LogException);
+    if(!taskxaml::HookTaskbarSymbols(nullptr)) {
+        Wh_Log(L"[Mawaqit] Failed to hook taskbar symbols");return FALSE;
+    }
+    return TRUE;
+}
+void Wh_ModAfterInit() {
+    g_worker=CreateThread(nullptr,0,StartWorker,nullptr,0,nullptr);
+    g_updateWorker=CreateThread(nullptr,0,ScheduleWorker,nullptr,0,nullptr);
+    g_countdownWorker=CreateThread(nullptr,0,CountdownWorker,nullptr,0,nullptr);
+}
+void Wh_ModSettingsChanged() {
+    Wh_Log(L"[Mawaqit] Settings change received; rebuilding native slot");
+    LoadModSettings();
+    bool dispatched=OnTaskbarThread([](void*){
+        if(g_popup && IsWindowVisible(g_popup)){
+            if(!g_enablePopup) HidePrayerPopup();
+            else {
+                int seconds=g_popupAutoCloseSeconds.load();
+                g_popupAutoCloseDeadline=seconds>0?GetTickCount64()+static_cast<ULONGLONG>(seconds)*1000:0;
+            }
+        }
+        RemoveOnUiThread();InsertOnUiThread();
+    });
+    Wh_Log(L"[Mawaqit] Settings rebuild dispatched=%d",dispatched?1:0);
+}
+void Wh_ModUninit() {
+    g_stopping=true;
+    if(g_stopEvent)SetEvent(g_stopEvent);
+    if(g_refreshEvent)SetEvent(g_refreshEvent);
+    if(g_worker){WaitForSingleObject(g_worker,INFINITE);CloseHandle(g_worker);g_worker=nullptr;}
+    if(g_updateWorker){WaitForSingleObject(g_updateWorker,INFINITE);CloseHandle(g_updateWorker);g_updateWorker=nullptr;}
+    if(g_countdownWorker){WaitForSingleObject(g_countdownWorker,INFINITE);CloseHandle(g_countdownWorker);g_countdownWorker=nullptr;}
+    if(!OnTaskbarThread([](void*){RemoveOnUiThread();}))
+        Wh_Log(L"[Mawaqit] Teardown could not reach taskbar thread");
+    if(g_refreshEvent){CloseHandle(g_refreshEvent);g_refreshEvent=nullptr;}
+    if(g_stopEvent){CloseHandle(g_stopEvent);g_stopEvent=nullptr;}
 }

@@ -3,21 +3,24 @@ An unofficial, customizable **Mawaqit prayer clock for the Windows 11 taskbar**,
 
 Displays the upcoming prayer and a live countdown in a taskbar pill, with a clickable prayer-schedule popup. Designed with the **Emberveil** visual style in mind.
 
-> **Release candidate: v0.6.6.** Tested by the project author in their Windows setup; broader compatibility has not yet been established.
+> **Release candidate: v0.6.7.** Tested by the project author in their Windows setup; broader compatibility has not yet been established.
 
-> **Windhawk 2.0 or newer is recommended.** Earlier versions may display all configuration fields because they don't support conditional settings visibility.
+> **Windhawk 2.0 or newer is recommended.** Earlier versions may differ in how advanced settings are presented.
 
 ## Features
 - Upcoming prayer name, scheduled time, and live countdown
-- Clickable prayer-schedule popup
-- Five appearance themes: **Emberveil**, **Windows / System**, **Traditional Islamic**, **Catppucchin Mocha**, and **Custom**
+- Clickable prayer-schedule popup with optional auto-close timer
+- 13 appearance themes: **Windows / System**, **Traditional Islamic**, **Catppuccin Mocha**, **Emberveil**, **Emberveil Midnight**, **Emerald Mosque**, **Dracula**, **Nord**, **Gruvbox Dark**, **Tokyo Night**, **Solarized Dark**, **Solarized Light**, and **Custom**
 - Independent custom colors for the pill and popup
 - Visibility switches for the prayer label, countdown, and popup
-- Automatic taskbar-aware height or manual height override, four-sided margin and padding, tray gap, and corner radius
+- Native XAML taskbar slot with reserved space and a live countdown
+- Automatic or manual clock height, four-sided margin and padding, tray gap, and corner radius
 - Background schedule updates through native WinHTTP, with configurable refresh interval
 - Live settings updates without restarting Explorer
 
 ## Screenshots
+
+The screenshots below are from the earlier theme collection; additional v0.6.7 theme screenshots have not yet been added.
 Mawaqit Prayer Clock supports multiple appearance themes to match your Windows 11 desktop.
 
 Windows System Default | Traditional Islamic |
@@ -56,7 +59,7 @@ Settings are organized into the following groups:
 | Group | Options |
 | --- | --- |
 | General | Mosque ID or URL; appearance theme |
-| Display | Show next prayer; show countdown; enable prayer popup |
+| Display | Show next prayer; show countdown; enable prayer popup; popup auto-close (0–300 seconds) |
 | Advanced customization | Show advanced options (off by default) |
 | Mod settings (advanced) | Schedule refresh interval |
 | Layout settings (advanced) | Width; Height; Margin (left, top, right, bottom); Padding (left, top, right, bottom); Gap before system tray; Corner radius; Fontsize |
@@ -66,7 +69,13 @@ Set **Height** to `0` to follow the taskbar size automatically. **Margin** moves
 
 Custom color settings only affect the widget when **Custom** is selected. All three Display switches default to enabled.
 
-For a mosque, enter a slug such as `al-haram-makkah-saudi-arabia` or a URL such as `https://mawaqit.net/en/al-haram-makkah-saudi-arabia`. The source defaults to `masjidomar`; change it to your own mosque.
+For a mosque, enter a slug such as `al-haram-makkah-saudi-arabia` or a URL such as `https://mawaqit.net/en/al-haram-makkah-saudi-arabia`. The source defaults to `al-haram-makkah-saudi-arabia`; change it to your own mosque.
+
+## What changed in v0.6.7
+- Native XAML taskbar integration replaces the previous GDI taskbar pill.
+- Eight new theme presets and an optional popup auto-close timer.
+- Safer popup window-class registration and cleanup during mod reloads.
+- Preserved mosque schedule fetching, custom colors, and live settings.
 
 ## How schedule updates work
 The mod fetches the configured Mawaqit mosque page over HTTPS and reads schedule data embedded in the page. It caches generated schedule and metadata files under:
@@ -77,7 +86,7 @@ The default refresh interval is 24 hours; failed updates are retried after one h
 
 ## Troubleshooting
 - **No prayer times:** Verify the mosque identifier/URL and internet access to `mawaqit.net`.
-- **Widget missing:** Confirm the mod is enabled and Windows Explorer's taskbar/system tray is present; the widget hides if it cannot locate the tray.
+- **Widget missing:** Confirm the mod is enabled and Windows Explorer's taskbar/system tray is present; the native XAML slot may not appear if the taskbar tray is unavailable or unsupported.
 - **Theme colors not changing:** Select **Custom** to use custom pill and popup colors.
 - **Unexpected schedule:** Verify the mosque page and the local Windows date/time. The current updater uses the local Windows date when building the schedule.
 

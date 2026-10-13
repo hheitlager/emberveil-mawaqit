@@ -1,33 +1,33 @@
-# Mawaqit Prayer Clock v0.6.6
+# Mawaqit Prayer Clock v0.6.7
 
-**Taskbar-aware layout update — release candidate**
+**Native XAML taskbar integration — release candidate**
 
-A customizable, unofficial Mawaqit prayer clock for the Windows 11 taskbar, powered by Windhawk.
+This update moves the taskbar prayer clock to a native XAML slot while retaining the existing Mawaqit schedule updater and prayer schedule popup.
 
 ### Highlights
 
-- Live next-prayer display and countdown in a taskbar pill
-- Clickable popup with prayer schedule
-- Five themes: Emberveil, Windows / System, Traditional Islamic, Catppucchin Mocha, and Custom
-- Independent custom colors for pill and popup
-- Visibility switches for prayer label, countdown, and popup
-- Automatic height that adapts to Windows taskbar sizing, plus manual height override
-- Four-sided margins for positioning and four-sided padding for text spacing
-- Simplified layout settings labels and order
-- Corrected rounded corners at automatic height
-- Configurable background schedule updates and live settings changes
+- Native Windows 11 XAML taskbar pill with reserved taskbar space and live countdown.
+- 13 appearance themes: Windows / System, Traditional Islamic, Catppuccin Mocha, Emberveil, Emberveil Midnight, Emerald Mosque, Dracula, Nord, Gruvbox Dark, Tokyo Night, Solarized Dark, Solarized Light, and Custom.
+- Ten independent custom colors for pill and popup.
+- Optional popup auto-close (0 = disabled; 1–300 seconds).
+- Layout controls for width, height, margins, padding, tray gap, corner radius, and font size.
+- Popup class lifecycle improvements to avoid stale registrations during hot reloads.
+- Operational logs consistently prefixed `[Mawaqit]`.
 
-### Upgrading from older versions
+### Upgrade notes
 
-The previous `OffsetX`, `OffsetY`, and `PillPadding` settings are no longer used. Configure `Margins` and `Padding` instead. `PillHeight = 0` enables automatic height. See [CONFIGURATION.md](CONFIGURATION.md) for examples.
+Existing setting keys for mosque, theme, display, layout, and custom colors are retained. The taskbar pill implementation changes from GDI to native XAML. The popup remains Win32-based. If you use third-party taskbar mods, verify the pill position after updating.
+
+### Validation
+
+Author-tested: settings/behavior (8/8), popup auto-close (6/6), and visual inspection (7/7), plus all eight new theme presets. These tests do not establish compatibility with every Windows 11 build or taskbar customization.
 
 ### Installation
 
-Install Windhawk, create a new mod, paste `src/windhawk-mawaqit.wh.cpp`, compile, enable, and configure your Mawaqit mosque in the mod settings. See README for details.
+Install Windhawk, create or update the mod using `src/windhawk-mawaqit.wh.cpp`, compile and enable it, then configure your mosque. See [README.md](README.md) and [CONFIGURATION.md](CONFIGURATION.md).
 
 ### Notes
 
 - Source release; no precompiled binary.
-- Tested in the author's environment; compatibility across Windows builds is not yet established.
-- Unofficial project, not affiliated with Mawaqit.
-- Requires access to Mawaqit's website; upstream page changes can affect schedule retrieval.
+- Unofficial community project, not affiliated with Mawaqit.
+- Schedule retrieval depends on Mawaqit's website format and availability.
