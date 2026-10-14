@@ -1,8 +1,8 @@
-# Mawaqit Prayer Clock v0.6.9-rc1
+# Mawaqit Prayer Clock v0.6.9
 
-**Reliability and compatibility improvements — release candidate**
+**Reliability and compatibility improvements**
 
-This release candidate builds on v0.6.8.4 and the tested dev-9 baseline. It focuses on stable taskbar integration, popup behavior, settings updates, and schedule caching rather than new visual features.
+This release builds on v0.6.8.4 and the tested dev-9 baseline. It focuses on stable taskbar integration, popup behavior, settings updates, and schedule caching rather than new visual features.
 
 ### Highlights
 - **Taskbar recovery:** Reinsert the prayer clock if Windows recreates the taskbar’s XAML elements, with a periodic health check.
@@ -10,7 +10,8 @@ This release candidate builds on v0.6.8.4 and the tested dev-9 baseline. It focu
 - **Improved display scaling:** Better handling of DPI for the pill and popup.
 - **Cache management:** Store schedules in Windhawk-managed mod storage and reuse a fresh cache after Explorer restarts.
 - **Year-boundary refresh:** Wake around New Year so the next calendar year's schedule can be requested.
-- **Settings stability:** Apply UI-owned settings on the taskbar UI thread and remove the redundant advanced-settings visibility toggle.
+- **Settings stability:** Apply UI-owned settings on the taskbar UI thread, retry failed dispatch on the countdown tick, and remove the redundant advanced-settings visibility toggle.
+- **Faster shutdown:** Interrupt the startup worker wait when the mod is disabled or reloaded.
 
 ### Compatibility and limitations
 - All five taskbar positions remain available. **Dynamic center is experimental** and can overlap other taskbar elements.
@@ -20,11 +21,11 @@ This release candidate builds on v0.6.8.4 and the tested dev-9 baseline. It focu
 
 ### Upgrade notes
 - Existing mosque, theme, display, layout, custom-color and taskbar-position setting keys are retained.
-- The legacy `%LOCALAPPDATA%\EmberveilMawaqit` cache folder is no longer used. RC1 uses Windhawk-managed mod storage; any old folder may require manual cleanup.
+- The legacy `%LOCALAPPDATA%\EmberveilMawaqit` cache folder is no longer used. v0.6.9 uses Windhawk-managed mod storage; any old folder may require manual cleanup.
 - The mod-specific advanced-settings visibility switch was removed. Advanced settings remain available in Windhawk.
 
 ### Validation
-Author regression tests passed through dev-9, including startup, theme and position switching, popup behavior, Explorer restart, and normal shutdown. This is not a claim of compatibility with every Windows 11 build or taskbar mod.
+Author regression tests passed for startup, theme and position switching, popup behavior, repeated enable/disable cycles, Explorer restart, and normal shutdown. The final settings-exception safeguard still requires compilation and regression testing. This is not a claim of compatibility with every Windows 11 build or taskbar mod.
 
 ### Installation
 Install or update the source in Windhawk using `src/windhawk-mawaqit.wh.cpp`, compile and enable it, then configure your mosque. See [README.md](README.md) and [CONFIGURATION.md](CONFIGURATION.md).
@@ -38,7 +39,7 @@ Install or update the source in Windhawk using `src/windhawk-mawaqit.wh.cpp`, co
 
 # Mawaqit Prayer Clock v0.6.8
 
-**Selectable taskbar positions — release candidate**
+**Selectable taskbar positions — release**
 
 This update adds five selectable positions for the native XAML prayer clock, with live switching directly from the **General → Taskbar position** setting. The prayer schedule updater, themes, popup, and existing customization options remain available.
 
@@ -78,7 +79,7 @@ Install Windhawk, create or update the mod using `src/windhawk-mawaqit.wh.cpp`, 
 
 # Mawaqit Prayer Clock v0.6.7
 
-**Native XAML taskbar integration — release candidate**
+**Native XAML taskbar integration — release**
 
 This update moves the taskbar prayer clock to a native XAML slot while retaining the existing Mawaqit schedule updater and prayer schedule popup.
 

@@ -1,7 +1,7 @@
 # Changelog
 Notable changes to Mawaqit Prayer Clock are documented here.
 
-## [0.6.9-rc1] — Reliability and release-candidate hardening
+## [0.6.9] — Reliability and release-candidate hardening
 
 ### Improved
 - Reuse a fresh, matching Mawaqit schedule cache after Explorer restarts instead of downloading unnecessarily.
@@ -11,6 +11,8 @@ Notable changes to Mawaqit Prayer Clock are documented here.
 - Recover the native XAML widget if taskbar elements are recreated, using the existing taskbar hook and a periodic health check.
 
 ### Fixed
+- Retry pending settings on the taskbar countdown tick if dispatch fails, and preserve the retry request if settings application throws.
+- Wake the startup worker immediately on shutdown rather than waiting for its fixed 1.5-second sleep.
 - Keep native XAML object lifetime and settings updates on the appropriate UI thread.
 - Replace system-wide mouse-hook dismissal and Escape-key polling with native popup activation and keyboard handling.
 - Remove the advanced-settings visibility toggle that could leave hidden settings active.
@@ -18,7 +20,7 @@ Notable changes to Mawaqit Prayer Clock are documented here.
 ### Notes
 - Mawaqit remains the source of prayer times. The mod does not calculate or fabricate unavailable future schedules.
 - Dynamic center remains experimental and may overlap taskbar elements.
-- Author regression tests passed through dev-9; a taskbar XAML-only recreation and the actual New Year transition have not been conclusively exercised.
+- Author regression tests passed for settings, enable/disable cycles, Explorer restart, and popup behavior; a taskbar XAML-only recreation and the actual New Year transition have not been conclusively exercised.
 - External network access to `mawaqit.net` is documented; upstream Windhawk acceptance remains subject to maintainer review.
 
 ## [0.6.8] - Selectable taskbar positions
@@ -59,7 +61,7 @@ Notable changes to Mawaqit Prayer Clock are documented here.
 - Restored rounded-corner rendering with automatic height.
 - Resolved Windows `RECT` coordinate type mismatches in padding calculations.
 
-## [0.6.2] — Initial public release candidate
+## [0.6.2] — Initial public release
 
 ### Changed
 - Reorganized settings labels and descriptions into Mawaqit, Appearance, Display, Custom pill, Custom popup, Layout, and Advanced groups.

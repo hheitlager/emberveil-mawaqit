@@ -5,7 +5,7 @@ Windhawk provides two editors for this mod:
 - **Settings:** Mosque, appearance preset, taskbar position, display toggles, and popup auto-close.
 - **Advanced → Mod settings:** The complete JSON settings object, including every color and layout key.
 
-The current v0.6.9-rc1 build exposes the layout, refresh, and custom-theme groups in Settings. Their keys can also be edited in Advanced JSON.
+The current v0.6.9 build exposes the layout, refresh, and custom-theme groups in Settings. Their keys can also be edited in Advanced JSON.
 
 ## Editing advanced values
 
@@ -72,7 +72,7 @@ This is a **sample configuration**, not the mod's built-in defaults. The setting
 | `CustomPopupMuted` | Popup secondary text | `#RRGGBB` |
 | `CustomPopupRule` | Popup divider lines | `#RRGGBB` |
 | `CustomPopupFooter` | Popup footer | `#RRGGBB` |
-| `Width` | Clock width | 180–400 px; default 0 (uses 200 px fallback) |
+| `Width` | Clock width | 180–400 px; default 200 |
 | `PillHeight` (**Height**) | Clock height | `0` = automatic; 1–100 px = manual override; default 0 |
 | `Margins` (**Margin**) | Moves the entire clock relative to its automatic position | Four comma-separated signed integers `left, top, right, bottom`; each −100 to 100 px; default `"0, 0, 0, 0"` |
 | `Padding` | Reserves space between the clock edges and text, without moving or resizing the clock | Four comma-separated integers `left, top, right, bottom`; each 0–100 px; default `"0, 0, 0, 0"` |
@@ -109,7 +109,7 @@ Margin affects **position only**; padding affects the **text area only**. Neithe
 
 **Compatibility:** Tested on the author’s Windows 11 setup. Native XAML taskbar layouts can vary across Windows builds and taskbar modifications.
 
-## Schedule cache and refresh behavior (v0.6.9-rc1)
+## Schedule cache and refresh behavior (v0.6.9)
 
 The mod stores its schedule and metadata in Windhawk-managed mod storage (`Wh_GetModStoragePath()`), not the old `%LOCALAPPDATA%\EmberveilMawaqit` folder. It reuses a fresh matching cache after Explorer restarts. Failed updates retry after one hour. The worker wakes at the December-to-January boundary so the new year’s schedule can be requested, subject to Mawaqit providing it.
 
