@@ -1,6 +1,26 @@
 # Changelog
 Notable changes to Mawaqit Prayer Clock are documented here.
 
+## [0.6.9-rc1] — Reliability and release-candidate hardening
+
+### Improved
+- Reuse a fresh, matching Mawaqit schedule cache after Explorer restarts instead of downloading unnecessarily.
+- Store cache files in Windhawk-managed mod storage, allowing cleanup on uninstall.
+- Refresh scheduling wakes around the December 31–January 1 boundary so the new year’s schedule can be requested promptly.
+- Scale the taskbar widget and popup consistently across DPI settings.
+- Recover the native XAML widget if taskbar elements are recreated, using the existing taskbar hook and a periodic health check.
+
+### Fixed
+- Keep native XAML object lifetime and settings updates on the appropriate UI thread.
+- Replace system-wide mouse-hook dismissal and Escape-key polling with native popup activation and keyboard handling.
+- Remove the advanced-settings visibility toggle that could leave hidden settings active.
+
+### Notes
+- Mawaqit remains the source of prayer times. The mod does not calculate or fabricate unavailable future schedules.
+- Dynamic center remains experimental and may overlap taskbar elements.
+- Author regression tests passed through dev-9; a taskbar XAML-only recreation and the actual New Year transition have not been conclusively exercised.
+- External network access to `mawaqit.net` is documented; upstream Windhawk acceptance remains subject to maintainer review.
+
 ## [0.6.8] - Selectable taskbar positions
 
 ### Added

@@ -3,7 +3,7 @@ An unofficial, customizable **Mawaqit prayer clock for the Windows 11 taskbar**,
 
 Displays the upcoming prayer and a live countdown in a taskbar pill, with a clickable prayer-schedule popup. Designed with the **Emberveil** visual style in mind.
 
-> **Release candidate: v0.6.8.** Tested by the project author in their Windows setup; broader compatibility has not yet been established.
+> **Release candidate: v0.6.9-rc1.** Tested by the project author in their Windows setup; broader compatibility has not yet been established.
 
 > **Windhawk 2.0 or newer is recommended.** Earlier versions may differ in how advanced settings are presented.
 
@@ -14,14 +14,14 @@ Displays the upcoming prayer and a live countdown in a taskbar pill, with a clic
 - Independent custom colors for the pill and popup
 - Visibility switches for the prayer label, countdown, and popup
 - Five selectable taskbar positions, including experimental dynamic centering
-- Native XAML taskbar slot with reserved space and a live countdown
+- Native XAML taskbar slot with reserved space for anchored positions and a live countdown
 - Automatic or manual clock height, four-sided margin and padding, tray gap, and corner radius
-- Background schedule updates through native WinHTTP, with configurable refresh interval
-- Live settings updates without restarting Explorer
+- Background schedule updates through native WinHTTP, with configurable refresh interval and cache reuse
+- Live settings updates without restarting Explorer; recovery when taskbar elements are recreated
 
 ## Screenshots
 
-The screenshots below are from the earlier theme collection; additional v0.6.8 theme screenshots have not yet been added.
+The screenshots below are from the earlier theme collection; additional theme screenshots have not yet been added.
 Mawaqit Prayer Clock supports multiple appearance themes to match your Windows 11 desktop.
 
 Windows System Default | Traditional Islamic |
@@ -59,9 +59,8 @@ Settings are organized into the following groups:
 
 | Group | Options |
 | --- | --- |
-| General | Mosque ID or URL; appearance theme |
+| General | Mosque ID or URL; appearance theme; taskbar position |
 | Display | Show next prayer; show countdown; enable prayer popup; popup auto-close (0–300 seconds) |
-| Advanced customization | Show advanced options (off by default) |
 | Mod settings (advanced) | Schedule refresh interval |
 | Layout settings (advanced) | Width; Height; Margin (left, top, right, bottom); Padding (left, top, right, bottom); Gap before system tray; Corner radius; Fontsize |
 | Custom theme settings (advanced) | Pill and popup color controls |
@@ -72,15 +71,21 @@ Custom color settings only affect the widget when **Custom** is selected. All th
 
 For a mosque, enter a slug such as `al-haram-makkah-saudi-arabia` or a URL such as `https://mawaqit.net/en/al-haram-makkah-saudi-arabia`. The source defaults to `al-haram-makkah-saudi-arabia`; change it to your own mosque.
 
-## What changed in v0.6.8
-- Five selectable taskbar positions, including experimental dynamic centering
+## What changed in v0.6.9-rc1
+- Improved recovery when Windows recreates taskbar XAML elements, including a periodic health check.
+- Improved popup activation and dismissal without relying on a system-wide mouse hook.
+- Improved UI-thread safety when applying settings and handling XAML objects.
+- Improved DPI scaling for the taskbar widget and prayer popup.
+- Moved the schedule cache into Windhawk-managed mod storage and reused fresh cached schedules on Explorer restarts.
+- Added a year-boundary refresh wake-up to avoid sleeping past January 1 with the previous year's schedule.
+- Removed the advanced-settings visibility toggle; advanced groups remain directly available.
+
+See [CHANGELOG.md](CHANGELOG.md) for the complete RC1 summary.
 
 ## How schedule updates work
-The mod fetches the configured Mawaqit mosque page over HTTPS and reads schedule data embedded in the page. It caches generated schedule and metadata files under:
+The mod fetches the configured Mawaqit mosque page over HTTPS and reads schedule data embedded in the page. It caches generated schedule and metadata files in **Windhawk-managed, mod-specific storage**, obtained through `Wh_GetModStoragePath()`. The cache is removed when the mod is uninstalled. Older installations may leave files in `%LOCALAPPDATA%\EmberveilMawaqit\`; this legacy location is no longer used by RC1.
 
-`%LOCALAPPDATA%\EmberveilMawaqit\`
-
-The default refresh interval is 24 hours; failed updates are retried after one hour. This integration depends on the format and availability of the Mawaqit website, which may change.
+A valid, fresh cache is reused after Explorer restarts. The default refresh interval is 24 hours; failed updates are retried after one hour. The worker also wakes around the December 31–January 1 transition to request the new year’s schedule. This does not guarantee Mawaqit has published that schedule, and December 31 after Isha may temporarily show that tomorrow’s prayer time is unavailable. This integration depends on the format and availability of the Mawaqit website, which may change.
 
 ## Troubleshooting
 - **No prayer times:** Verify the mosque identifier/URL and internet access to `mawaqit.net`.
