@@ -2,7 +2,7 @@
 // @id windhawk-mawaqit
 // @name Mawaqit Prayer Clock
 // @description Mawaqit prayer clock with live countdown, prayer schedule popup, and customizable themes.
-// @version 0.6.8
+// @version 0.6.8.4
 // @author HHeitlager
 // @github https://github.com/hheitlager
 // @include explorer.exe
@@ -180,6 +180,7 @@ with or endorsed by Mawaqit.
 #include <windhawk_utils.h>
 #include <atomic>
 #include <algorithm>
+#include <cmath>
 #include <string>
 #include <cstdint>
 #include <winhttp.h>
@@ -224,6 +225,7 @@ struct Lease {
     std::wstring markerName;
     int slot = -1;
     Kind kind = Kind::Unsupported;
+    bool createdBaseColumn = false;
 };
 
 inline Kind Classify(FrameworkElement const& parent) {
@@ -369,8 +371,18 @@ inline bool AcquireAt(Panel const& parent, int slot,
         auto grid = parent.try_as<Grid>();
         if (!grid)
             return false;
+        // A Grid without ColumnDefinitions uses one implicit full-width column.
+        // Materialize that implicit column before inserting a lease column;
+        // otherwise the repeater is shifted to column 1 in a ONE-column grid.
+        bool createdBaseColumn = grid.ColumnDefinitions().Size() == 0;
+        if (createdBaseColumn) {
+            ColumnDefinition base;
+            base.Width({1.0, GridUnitType::Star});
+            grid.ColumnDefinitions().Append(base);
+        }
         ColumnDefinition definition;
         definition.Width({1.0, GridUnitType::Auto});
+        slot = std::min(slot, static_cast<int>(grid.ColumnDefinitions().Size()));
         if (static_cast<uint32_t>(slot) < grid.ColumnDefinitions().Size())
             grid.ColumnDefinitions().InsertAt(slot, definition);
         else
@@ -389,6 +401,7 @@ inline bool AcquireAt(Panel const& parent, int slot,
 
         Grid::SetColumn(marker, slot);
         grid.Children().Append(marker);
+        lease.createdBaseColumn = createdBaseColumn;
     } else {
         // Order: no column is created or owned. The marker simply holds the
         // position, and PlaceChild drops the content next to it.
@@ -398,7 +411,7 @@ inline bool AcquireAt(Panel const& parent, int slot,
         slot = static_cast<int>(index);
     }
 
-    lease = {markerName, slot, kind};
+    lease = {markerName, slot, kind, lease.createdBaseColumn};
     return true;
 }
 
@@ -478,6 +491,9 @@ inline bool Release(Panel const& parent, Lease& lease) {
             Grid::SetColumnSpan(element, std::max(1, span - 1));
     }
 
+    // Restore the original implicit-column layout only for columns we created.
+    if (lease.createdBaseColumn && grid.ColumnDefinitions().Size() == 1)
+        grid.ColumnDefinitions().Clear();
     lease = {};
     return true;
 }
@@ -1339,11 +1355,34 @@ static Panel ResolveCenterParent() {
                grid.ActualWidth(),taskbarWidth);
         return nullptr;
     }
+    Panel iconsParent{nullptr};
+    FrameworkElement repeater{nullptr};
+    auto tray=FindNamed(root,L"SystemTrayFrameGrid");
+    if(!tray || tray.ActualWidth()<=0 ||
+       !FindApplicationRepeater(root,iconsParent,repeater) ||
+       !repeater || repeater.ActualWidth()<=0) {
+        Wh_Log(L"[Mawaqit] Center waiting for application/tray layout");
+        return nullptr;
+    }
     return grid;
 }
 
 static Panel ResolvePositionParent(int& slotIndex) {
     slotIndex=-1;
+    if(g_position==L"after-icons") {
+        // Unlike before-icons, the repeater's column spans nearly the whole
+        // taskbar. Use a non-layout-affecting overlay anchored to realized icons.
+        auto root=LiveTaskbarRoot();
+        auto grid=root.try_as<Grid>();
+        Panel iconsParent{nullptr}; FrameworkElement repeater{nullptr};
+        if(grid && grid.ActualWidth()>0 &&
+           FindApplicationRepeater(root,iconsParent,repeater) &&
+           repeater && repeater.ActualWidth()>0) {
+            slotIndex=0;
+            return grid;
+        }
+        return nullptr;
+    }
     if(g_position==L"center") {
         auto center=ResolveCenterParent();
         if(center) slotIndex=0;
@@ -1366,6 +1405,27 @@ static Panel ResolvePositionParent(int& slotIndex) {
     Panel parent{nullptr};
     FrameworkElement repeater{nullptr};
     if(root && FindApplicationRepeater(root,parent,repeater)) {
+        // During Explorer startup the repeater can exist before its first
+        // layout pass. Inserting at that point can lease column zero and
+        // overlay the Start area. Let the startup worker retry instead.
+        if(root.ActualWidth()<=0 || parent.ActualWidth()<=0 ||
+           repeater.ActualWidth()<=0 || repeater.ActualHeight()<=0) {
+            Wh_Log(L"[Mawaqit] Icon anchor waiting for layout: root=%.1f parent=%.1f repeater=%.1fx%.1f",
+                   root.ActualWidth(),parent.ActualWidth(),
+                   repeater.ActualWidth(),repeater.ActualHeight());
+            return nullptr;
+        }
+        try {
+            auto point=repeater.TransformToVisual(parent).TransformPoint({0,0});
+            if(!std::isfinite(point.X) || !std::isfinite(point.Y) ||
+               point.X < -1.0 || point.X > parent.ActualWidth()+1.0) {
+                Wh_Log(L"[Mawaqit] Icon anchor waiting for stable coordinates: x=%.1f",point.X);
+                return nullptr;
+            }
+        } catch(...) {
+            Wh_Log(L"[Mawaqit] Icon anchor transform unavailable; retrying");
+            return nullptr;
+        }
         auto kind=slot::Classify(parent);
         if(kind==slot::Kind::Columns) {
             int column=Grid::GetColumn(repeater);
@@ -1388,6 +1448,7 @@ static Panel ResolvePositionParent(int& slotIndex) {
 // Keep the overlay centered until the live application repeater reaches it,
 // then translate right, stopping before the tray. Windows icon layout and
 // overflow behavior remain unchanged.
+static int g_centerDiagnosticCount=0;
 static void UpdateDynamicCenterOnUiThread() {
     if(g_position!=L"center" || !g_pill) return;
     auto root=LiveTaskbarRoot();
@@ -1404,13 +1465,41 @@ static void UpdateDynamicCenterOnUiThread() {
         double pillWidth=g_pill.ActualWidth();
         if(pillWidth<=0) pillWidth=g_pill.Width();
         double centeredLeft=(grid.ActualWidth()-pillWidth)/2.0;
-        double appRight=appOrigin.X+repeater.ActualWidth();
+        // ItemsRepeater can occupy the entire taskbar even when its realized
+        // buttons use only a small portion. Measure the realized children.
+        double appRight=appOrigin.X;
+        unsigned measuredButtons=0;
+        int count=VisualTreeHelper::GetChildrenCount(repeater);
+        for(int i=0;i<count;++i) {
+            auto child=VisualTreeHelper::GetChild(repeater,i).try_as<FrameworkElement>();
+            if(!child || child.Visibility()!=Visibility::Visible ||
+               child.ActualWidth()<=0 || child.ActualWidth()>400.0) continue;
+            auto pos=child.TransformToVisual(grid).TransformPoint({0,0});
+            if(std::isfinite(pos.X) && pos.X>=0 &&
+               pos.X+child.ActualWidth()<=grid.ActualWidth()+1.0) {
+                appRight=std::max(appRight,pos.X+child.ActualWidth());
+                ++measuredButtons;
+            }
+        }
+        // If buttons are not realized yet, do not mistake the full-width
+        // repeater for occupied space; defer visibility until the next tick.
+        if(measuredButtons==0) {
+            Wh_Log(L"[Mawaqit] Center awaiting realized buttons: repeaterW=%.1f children=%d",repeater.ActualWidth(),count);
+            g_pill.Visibility(Visibility::Collapsed);
+            return;
+        }
         double gap=5.0;
         double maximumLeft=trayOrigin.X-pillWidth-gap;
         double wantedLeft=std::max(centeredLeft,appRight+gap);
         // If the available region is exhausted, hide rather than overlap the
         // system tray or the application buttons. This does not force overflow.
         bool room=maximumLeft>=centeredLeft && wantedLeft<=maximumLeft;
+        if(g_centerDiagnosticCount<12) {
+            Wh_Log(L"[Mawaqit] Center layout: root=%.1f repeaterX=%.1f repeaterW=%.1f appRight=%.1f trayX=%.1f pillW=%.1f centered=%.1f wanted=%.1f max=%.1f room=%d",
+                   grid.ActualWidth(),appOrigin.X,repeater.ActualWidth(),appRight,
+                   trayOrigin.X,pillWidth,centeredLeft,wantedLeft,maximumLeft,room?1:0);
+            ++g_centerDiagnosticCount;
+        }
         g_pill.Visibility(room?Visibility::Visible:Visibility::Collapsed);
         double left=std::min(wantedLeft,maximumLeft);
         if(room) {
@@ -1427,7 +1516,61 @@ static void UpdateDynamicCenterOnUiThread() {
     }
 }
 
+// After-icons is visually anchored to the last realized taskbar button.
+// Never resize or re-column the taskbar's full-width ItemsRepeater.
+static int g_afterIconsDiagnosticCount=0;
+static void UpdateAfterIconsOnUiThread() {
+    if(g_position!=L"after-icons" || !g_pill) return;
+    auto root=LiveTaskbarRoot();
+    auto grid=root.try_as<Grid>();
+    if(!grid || grid.ActualWidth()<=0) return;
+    Panel iconsParent{nullptr}; FrameworkElement repeater{nullptr};
+    if(!FindApplicationRepeater(root,iconsParent,repeater) || !repeater) return;
+    try {
+        auto origin=repeater.TransformToVisual(grid).TransformPoint({0,0});
+        double appRight=origin.X;
+        unsigned measured=0;
+        int count=VisualTreeHelper::GetChildrenCount(repeater);
+        for(int i=0;i<count;++i) {
+            auto child=VisualTreeHelper::GetChild(repeater,i).try_as<FrameworkElement>();
+            if(!child || child.Visibility()!=Visibility::Visible ||
+               child.ActualWidth()<=0 || child.ActualWidth()>400.0) continue;
+            auto pos=child.TransformToVisual(grid).TransformPoint({0,0});
+            if(std::isfinite(pos.X) && pos.X>=0 &&
+               pos.X+child.ActualWidth()<=grid.ActualWidth()+1.0) {
+                appRight=std::max(appRight,pos.X+child.ActualWidth());
+                ++measured;
+            }
+        }
+        double pillWidth=g_pill.ActualWidth();
+        if(pillWidth<=0) pillWidth=g_pill.Width();
+        double centeredLeft=(grid.ActualWidth()-pillWidth)/2.0;
+        double desiredLeft=appRight+5.0;
+        double rightLimit=grid.ActualWidth();
+        if(auto tray=LiveTray()) {
+            auto trayPos=tray.TransformToVisual(grid).TransformPoint({0,0});
+            rightLimit=trayPos.X;
+        }
+        bool room=measured>0 && desiredLeft+pillWidth+5.0<=rightLimit;
+        g_pill.Visibility(room?Visibility::Visible:Visibility::Collapsed);
+        if(room) {
+            auto transform=g_pill.RenderTransform().try_as<TranslateTransform>();
+            if(!transform) {transform=TranslateTransform();g_pill.RenderTransform(transform);}
+            transform.X(desiredLeft-centeredLeft);
+        }
+        if(g_afterIconsDiagnosticCount<15) {
+            Wh_Log(L"[Mawaqit] After-icons: repeaterW=%.1f measured=%u appRight=%.1f desired=%.1f trayLeft=%.1f pillW=%.1f room=%d",
+                   repeater.ActualWidth(),measured,appRight,desiredLeft,rightLimit,pillWidth,room?1:0);
+            ++g_afterIconsDiagnosticCount;
+        }
+    } catch(...) {
+        Wh_Log(L"[Mawaqit] After-icons measurement unavailable; retrying");
+    }
+}
+
 static void RemoveOnUiThread() {
+    g_centerDiagnosticCount=0;
+    g_afterIconsDiagnosticCount=0;
     DestroyPrayerPopup();
     if(g_pill && g_tapRegistered){try{g_pill.Tapped(g_tapToken);}catch(...){}g_tapRegistered=false;}
     auto parent=g_parent.get();
@@ -1524,7 +1667,7 @@ static void InsertOnUiThread() {
     content.Children().Append(countdown);
     pillSurface.Child(content);
     box.Children().Append(pillSurface);
-    if(g_position==L"center") {
+    if(g_position==L"center" || g_position==L"after-icons") {
         // A full-width Grid child is horizontally centered, then dynamically shifted.
         // It owns no grid column and must not change existing taskbar layout.
         // The pill remains the only hit-testable part of this overlay.
@@ -1557,7 +1700,19 @@ static void InsertOnUiThread() {
     Wh_Log(L"[Mawaqit] Text controls attached, prayer=%d countdown=%d",
         g_prayerText?1:0,g_countdownText?1:0);
     g_parent=parent;
+    if(g_position==L"before-icons" || g_position==L"after-icons") {
+        auto grid=parent.try_as<Grid>();
+        Panel iconsParent{nullptr}; FrameworkElement repeater{nullptr};
+        if(grid && FindApplicationRepeater(LiveTaskbarRoot(),iconsParent,repeater)) {
+            Wh_Log(L"[Mawaqit] Icon layout: requested=%s columns=%u repeaterColumn=%d repeaterSpan=%d boxColumn=%d boxSpan=%d parentW=%.1f repeaterW=%.1f boxW=%.1f",
+                   g_position.c_str(),grid.ColumnDefinitions().Size(),
+                   Grid::GetColumn(repeater),Grid::GetColumnSpan(repeater),
+                   Grid::GetColumn(box),Grid::GetColumnSpan(box),
+                   grid.ActualWidth(),repeater.ActualWidth(),box.ActualWidth());
+        }
+    }
     UpdateDynamicCenterOnUiThread();
+    UpdateAfterIconsOnUiThread();
     UpdateCountdown();
     prayer.Text(g_showNext?g_label:L"");
     countdown.Text(g_showCountdown?g_countdown:L"");
@@ -1597,6 +1752,7 @@ static void UpdateClockOnUiThread() {
     if(prayer)prayer.Text(g_showNext?g_label:L"");
     if(countdown)countdown.Text(g_showCountdown?g_countdown:L"");
     UpdateDynamicCenterOnUiThread();
+    UpdateAfterIconsOnUiThread();
 }
 
 // XAML DispatcherTimer did not tick in the taskbar's hosting context on the
