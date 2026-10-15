@@ -3,7 +3,7 @@ An unofficial, customizable **Mawaqit prayer clock for the Windows 11 taskbar**,
 
 Displays the upcoming prayer and a live countdown in a taskbar pill, with a clickable prayer-schedule popup. Designed with the **Emberveil** visual style in mind.
 
-> **Version: v0.6.9.** Tested by the project author in their Windows setup; broader compatibility has not yet been established.
+> **Version: v0.7.0-rc.1 (release candidate).** Tested by the project author in their Windows setup; broader compatibility has not yet been established.
 
 > **Windhawk 2.0 or newer is recommended.** Earlier versions may differ in how advanced settings are presented.
 
@@ -13,7 +13,7 @@ Displays the upcoming prayer and a live countdown in a taskbar pill, with a clic
 - 13 appearance themes: **Windows / System**, **Traditional Islamic**, **Catppuccin Mocha**, **Emberveil**, **Emberveil Midnight**, **Emerald Mosque**, **Dracula**, **Nord**, **Gruvbox Dark**, **Tokyo Night**, **Solarized Dark**, **Solarized Light**, and **Custom**
 - Independent custom colors for the pill and popup
 - Visibility switches for the prayer label, countdown, and popup
-- Five selectable taskbar positions, including experimental dynamic centering
+- Five selectable taskbar positions on primary and secondary monitors, including experimental dynamic centering
 - Native XAML taskbar slot with reserved space for anchored positions and a live countdown
 - Automatic or manual clock height, four-sided margin and padding, tray gap, and corner radius
 - Background schedule updates through native WinHTTP, with configurable refresh interval and cache reuse
@@ -59,7 +59,7 @@ Settings are organized into the following groups:
 
 | Group | Options |
 | --- | --- |
-| General | Mosque ID or URL; appearance theme; taskbar position |
+| General | Mosque ID or URL; appearance theme; taskbar position; primary/secondary monitor visibility |
 | Display | Show next prayer; show countdown; enable prayer popup; popup auto-close (0–300 seconds) |
 | Mod settings (advanced) | Schedule refresh interval |
 | Layout settings (advanced) | Width; Height; Margin (left, top, right, bottom); Padding (left, top, right, bottom); Gap before system tray; Corner radius; Fontsize |
@@ -71,6 +71,13 @@ Custom color settings only affect the widget when **Custom** is selected. All th
 
 For a mosque, enter a slug such as `al-haram-makkah-saudi-arabia` or a URL such as `https://mawaqit.net/en/al-haram-makkah-saudi-arabia`. The source defaults to `al-haram-makkah-saudi-arabia`; change it to your own mosque.
 
+## What changed in v0.7.0-rc.1
+- Added independent primary and secondary taskbar clocks with visibility toggles.
+- Unified five taskbar positions across displays.
+- Added monitor-aware popup placement and taskbar recovery after monitor changes.
+- Passed 26 author-run regression checks, including themes, prayer rollover, offline behavior, Explorer restart, and monitor reconnection.
+- Known limitation: crowded or narrow portrait taskbars may lack room to display the clock at a chosen position; changing position can help.
+
 ## What changed in v0.6.9
 - Improved recovery when Windows recreates taskbar XAML elements, including a periodic health check.
 - Improved popup activation and dismissal without relying on a system-wide mouse hook.
@@ -81,7 +88,7 @@ For a mosque, enter a slug such as `al-haram-makkah-saudi-arabia` or a URL such 
 - Removed the advanced-settings visibility toggle; advanced groups remain directly available.
 - Added a pending-settings retry if taskbar-thread dispatch is unavailable, and made the startup worker wake immediately on shutdown.
 
-See [CHANGELOG.md](CHANGELOG.md) for the complete v0.6.9 summary.
+See [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
 ## How schedule updates work
 The mod fetches the configured Mawaqit mosque page over HTTPS and reads schedule data embedded in the page. It caches generated schedule and metadata files in **Windhawk-managed, mod-specific storage**, obtained through `Wh_GetModStoragePath()`. The cache is removed when the mod is uninstalled. Older installations may leave files in `%LOCALAPPDATA%\EmberveilMawaqit\`; this legacy location is no longer used by v0.6.9.

@@ -1,6 +1,23 @@
 # Changelog
 Notable changes to Mawaqit Prayer Clock are documented here.
 
+## [0.7.0-rc.1] — Multi-monitor release candidate
+
+### Added
+- Independent clock visibility for primary and secondary Windows 11 taskbars.
+- Five unified taskbar positions on both displays: before/after tray, before/after icons, and dynamic center.
+- Monitor-aware prayer popup placement and secondary-taskbar XAML lifecycle handling.
+
+### Improved
+- Secondary before-icons placement reserves a native XAML layout slot.
+- Taskbar recovery following monitor reconnects, primary-display changes, and Explorer restarts.
+- Reduced repetitive secondary layout diagnostic logging.
+
+### Validation and limitations
+- All 26 author-run functional regression checks passed on the tested dual-monitor setup.
+- Narrow or crowded taskbars, particularly portrait layouts and configurations with other taskbar mods, may not have enough room for some positions.
+- Broader Windows 11 build compatibility has not been established. Source-only RC; no precompiled binary.
+
 ## [0.6.9] — Reliability and release-candidate hardening
 
 ### Improved

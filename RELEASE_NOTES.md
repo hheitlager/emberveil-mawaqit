@@ -1,3 +1,30 @@
+# Mawaqit Prayer Clock v0.7.0-rc.1
+
+**Multi-monitor release candidate — author-tested**
+
+This release candidate adds a prayer clock to secondary Windows 11 taskbars, with independent primary/secondary visibility and the same five positioning choices on both displays. It preserves the existing Mawaqit schedule retrieval, caching, themes, and popup behavior.
+
+### Highlights
+- Native XAML clock on primary and secondary taskbars.
+- Unified positions: before tray, after tray, before icons, after icons, and experimental dynamic center.
+- Independent visibility controls for primary and secondary monitors.
+- Monitor-aware popup placement and recovery following display changes and Explorer restart.
+- All 26 author-run functional regression checks passed, including theme changes, offline schedule use, prayer rollover, monitor reconnect, and repeated enable/disable.
+
+### Known limitations
+- A narrow, crowded, or portrait taskbar may not have room for the selected clock position, especially alongside other taskbar customization mods. Selecting another position can help.
+- Dynamic center remains experimental and may overlap other taskbar elements.
+- Windows 11 taskbar XAML structures can change between builds; broader compatibility is unverified.
+- Schedule retrieval depends on Mawaqit's public website and published data.
+
+### Installation and upgrade
+Use `src/windhawk-mawaqit.wh.cpp` in Windhawk's mod editor, compile, enable, and configure the mosque identifier. Existing setting keys are retained; the new `General.ShowPrimaryMonitor` and `General.ShowSecondaryMonitors` switches default to enabled. This is a source release; no precompiled binary is provided.
+
+### Status
+Release candidate for review, not a final v0.7.0 release. The source has not been independently compiled in this review environment. Upstream Windhawk acceptance remains subject to maintainer review.
+
+---
+
 # Mawaqit Prayer Clock v0.6.9
 
 **Reliability and compatibility improvements**

@@ -1,12 +1,12 @@
 // ==WindhawkMod==
-// @id windhawk-mawaqit
-// @name Mawaqit Prayer Clock
-// @description Mawaqit prayer clock with live countdown, prayer schedule popup, and customizable themes.
-// @version 0.6.9
-// @author HHeitlager
-// @github https://github.com/hheitlager
-// @include explorer.exe
-// @architecture x86-64
+// @id              windhawk-mawaqit
+// @name            Mawaqit Prayer Clock
+// @description     Mawaqit prayer clock with live countdown, multi-monitor taskbar support, prayer schedule popup, and customizable themes.
+// @version         0.7.0-rc1
+// @author          HHeitlager
+// @github          https://github.com/hheitlager
+// @include         explorer.exe
+// @architecture    x86-64
 // @compilerOptions -lole32 -loleaut32 -lruntimeobject -lshell32 -luuid -lgdi32 -lwinhttp
 // ==/WindhawkMod==
 
@@ -15,6 +15,15 @@
 # Mawaqit Prayer Clock
 Mawaqit prayer clock with live countdown, prayer schedule popup, and customizable themes.
 
+
+## Release candidate 0.7.0
+
+Unifies taskbar positioning under General. Position for primary and secondary
+monitors. Secondary center and after-icons use a non-layout-affecting overlay;
+before-icons reserves a real slot in the taskbar icon container.
+Unsupported tray anchors fall back to the known-working tray slot.
+Popup placement remains monitor-aware. The multi-monitor behavior has passed the author’s 26-check regression suite.
+Some positioning modes may be constrained by crowded or narrow taskbars.
 
 ## Features
 - Upcoming prayer name, scheduled time, and live countdown
@@ -116,6 +125,10 @@ with or endorsed by Mawaqit.
     - before-icons: Before taskbar icons
     - after-icons: After taskbar icons
     - center: Dynamic center (experimental)
+  - ShowPrimaryMonitor: true
+    $name: Show clock on primary monitor
+  - ShowSecondaryMonitors: true
+    $name: Show clock on secondary monitors
   $name: General
 - Display:
   - ShowNextPrayer: true
@@ -546,6 +559,62 @@ inline bool Release(Panel const &parent, Lease &lease)
 }
 
 } // namespace folder_menus_slot_lease
+// Enumerate live primary and secondary Explorer taskbar windows.
+namespace mawaqit_monitor_discovery
+{
+struct TaskbarRecord
+{
+    HWND hwnd = nullptr;
+    HMONITOR monitor = nullptr;
+    bool primaryTaskbar = false;
+    std::wstring device;
+    bool primaryMonitor = false;
+};
+
+inline std::vector<TaskbarRecord> EnumerateTaskbars()
+{
+    std::vector<TaskbarRecord> result;
+    EnumWindows([](HWND hwnd, LPARAM context) -> BOOL {
+        DWORD pid = 0;
+        wchar_t className[64]{};
+        if (GetWindowThreadProcessId(hwnd, &pid) == 0 ||
+            pid != GetCurrentProcessId() ||
+            !GetClassNameW(hwnd, className, ARRAYSIZE(className)))
+            return TRUE;
+        bool primary = _wcsicmp(className, L"Shell_TrayWnd") == 0;
+        if (!primary && _wcsicmp(className, L"Shell_SecondaryTrayWnd") != 0)
+            return TRUE;
+        HMONITOR monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONULL);
+        MONITORINFOEXW info{};
+        info.cbSize = sizeof(info);
+        TaskbarRecord entry{};
+        entry.hwnd = hwnd;
+        entry.monitor = monitor;
+        entry.primaryTaskbar = primary;
+        if (monitor && GetMonitorInfoW(monitor, &info))
+        {
+            entry.device = info.szDevice;
+            entry.primaryMonitor = (info.dwFlags & MONITORINFOF_PRIMARY) != 0;
+        }
+        reinterpret_cast<std::vector<TaskbarRecord>*>(context)->push_back(std::move(entry));
+        return TRUE;
+    }, reinterpret_cast<LPARAM>(&result));
+    return result;
+}
+
+inline void LogInventory()
+{
+    auto taskbars = EnumerateTaskbars();
+    Wh_Log(L"[Mawaqit][Monitor] Taskbar discovery: count=%u", (unsigned)taskbars.size());
+    for (auto const& bar : taskbars)
+        Wh_Log(L"[Mawaqit][Monitor] hwnd=%p class=%s monitor=%s primaryMonitor=%d uiThread=%lu",
+               bar.hwnd, bar.primaryTaskbar ? L"Shell_TrayWnd" : L"Shell_SecondaryTrayWnd",
+               bar.device.empty() ? L"(unresolved)" : bar.device.c_str(),
+               bar.primaryMonitor ? 1 : 0,
+               (unsigned long)GetWindowThreadProcessId(bar.hwnd, nullptr));
+}
+} // namespace mawaqit_monitor_discovery
+
 namespace folder_menus_taskbar_window
 {
 
@@ -715,6 +784,8 @@ inline TaskbarHost_FrameHeight_t TaskbarHost_FrameHeight_Original = nullptr;
 inline Ref_count_base_Decref_t Ref_count_base_Decref_Original = nullptr;
 inline TrayUI_StartTaskbar_t TrayUI_StartTaskbar_Original = nullptr;
 inline void *CTaskBand_ITaskListWndSite_vftable = nullptr;
+inline void *CSecondaryTaskBand_ITaskListWndSite_vftable = nullptr;
+inline CTaskBand_GetTaskbarHost_t CSecondaryTaskBand_GetTaskbarHost_Original = nullptr;
 
 // The mod's rebuild callback, invoked after Explorer rebuilds the taskbar.
 inline void (*g_onTaskbarRebuilt)() = nullptr;
@@ -753,7 +824,20 @@ inline bool HookTaskbarSymbols(void (*onTaskbarRebuilt)())
          &TrayUI_StartTaskbar_Original,
          TrayUI_StartTaskbar_Hook},
     };
-    return WindhawkUtils::HookSymbols(taskbar, taskbarDllHooks, ARRAYSIZE(taskbarDllHooks));
+    if (!WindhawkUtils::HookSymbols(taskbar, taskbarDllHooks, ARRAYSIZE(taskbarDllHooks)))
+        return false;
+    // Secondary symbols are optional. Never fail the working primary clock.
+    WindhawkUtils::SYMBOL_HOOK secondaryHooks[] = {
+        {{LR"(const CSecondaryTaskBand::`vftable'{for `ITaskListWndSite'})"},
+         &CSecondaryTaskBand_ITaskListWndSite_vftable},
+        {{LR"(public: virtual class std::shared_ptr<class TaskbarHost> __cdecl CSecondaryTaskBand::GetTaskbarHost(void)const )"},
+         &CSecondaryTaskBand_GetTaskbarHost_Original},
+    };
+    bool secondaryOk = WindhawkUtils::HookSymbols(taskbar, secondaryHooks, ARRAYSIZE(secondaryHooks));
+    Wh_Log(L"[Mawaqit][Monitor][Probe] secondary-symbols status=%s vtable=%p host=%p",
+           secondaryOk ? L"ok" : L"missing", CSecondaryTaskBand_ITaskListWndSite_vftable,
+           (void*)CSecondaryTaskBand_GetTaskbarHost_Original);
+    return true;
 }
 
 // The FrameworkElement lives at an offset inside TaskbarHost that MOVES
@@ -782,47 +866,112 @@ inline size_t FrameworkElementOffset()
     return offset;
 }
 
-inline XamlRoot GetTaskbarXamlRoot(HWND taskbarWnd)
+inline XamlRoot GetTaskbarXamlRoot(HWND taskbarWnd, bool diagnostic = false)
 {
     if (!CTaskBand_GetTaskbarHost_Original || !TaskbarHost_FrameHeight_Original ||
         !Ref_count_base_Decref_Original || !CTaskBand_ITaskListWndSite_vftable)
+    {
+        if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=symbols status=missing");
         return nullptr;
+    }
+    if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=symbols status=ok");
 
     HWND taskSwWnd = (HWND)GetProp(taskbarWnd, L"TaskbandHWND");
     if (!taskSwWnd)
+    {
+        if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=TaskbandHWND status=missing taskbar=%p", taskbarWnd);
         return nullptr;
+    }
+    if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=TaskbandHWND status=ok hwnd=%p", taskSwWnd);
     void *taskBand = (void *)GetWindowLongPtr(taskSwWnd, 0);
     if (!taskBand)
+    {
+        if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=taskBand status=null");
         return nullptr;
+    }
+    if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=taskBand status=ok");
 
     void *site = taskBand;
     for (int i = 0; *(void **)site != CTaskBand_ITaskListWndSite_vftable; ++i)
     {
         if (i == 20)
+        {
+            if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=site-vtable status=not-found");
             return nullptr;
+        }
         site = (void **)site + 1;
     }
 
+    if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=site-vtable status=ok");
     void *host[2]{};
     CTaskBand_GetTaskbarHost_Original(site, host);
     if (!host[0] || !host[1])
     {
+        if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=taskbar-host status=missing");
         if (host[1])
             Ref_count_base_Decref_Original(host[1]);
         return nullptr;
     }
 
+    if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=taskbar-host status=ok");
     auto *unknown = *(IUnknown **)((BYTE *)host[0] + FrameworkElementOffset());
     if (!unknown)
     {
+        if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=framework-element status=null");
         Ref_count_base_Decref_Original(host[1]);
         return nullptr;
     }
+    if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=framework-element status=pointer-present");
     FrameworkElement element = nullptr;
     unknown->QueryInterface(winrt::guid_of<FrameworkElement>(), winrt::put_abi(element));
+    if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=framework-element-QI status=%s", element ? L"ok" : L"failed");
     auto result = element ? element.XamlRoot() : nullptr;
+    if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=xaml-root status=%s", result ? L"ok" : L"null");
     Ref_count_base_Decref_Original(host[1]);
     return result;
+}
+
+// Secondary taskbars use WorkerW and CSecondaryTaskBand, not TaskbandHWND.
+// Mirrors the established Windhawk multirow taskbar resolution path.
+inline XamlRoot GetSecondaryTaskbarXamlRoot(HWND taskbarWnd, bool diagnostic = false)
+{
+    if (!CSecondaryTaskBand_ITaskListWndSite_vftable ||
+        !CSecondaryTaskBand_GetTaskbarHost_Original ||
+        !TaskbarHost_FrameHeight_Original || !Ref_count_base_Decref_Original)
+    {
+        if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=secondary-symbols status=missing");
+        return nullptr;
+    }
+    HWND worker = FindWindowExW(taskbarWnd, nullptr, L"WorkerW", nullptr);
+    if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=secondary-WorkerW hwnd=%p", worker);
+    if (!worker) return nullptr;
+    void* taskBand = (void*)GetWindowLongPtrW(worker, 0);
+    if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=secondary-taskBand ptr=%p", taskBand);
+    if (!taskBand) return nullptr;
+    void* site = taskBand;
+    int offset = 0;
+    for (; offset < 20; ++offset)
+    {
+        if (*(void**)site == CSecondaryTaskBand_ITaskListWndSite_vftable) break;
+        site = (void**)site + 1;
+    }
+    if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=secondary-site offset=%d found=%d", offset, offset < 20);
+    if (offset == 20) return nullptr;
+    void* host[2]{};
+    CSecondaryTaskBand_GetTaskbarHost_Original(site, host);
+    if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=secondary-host ptr=%p ref=%p", host[0], host[1]);
+    if (!host[0] || !host[1])
+    {
+        if (host[1]) Ref_count_base_Decref_Original(host[1]);
+        return nullptr;
+    }
+    auto* unknown = *(IUnknown**)((BYTE*)host[0] + FrameworkElementOffset());
+    FrameworkElement element = nullptr;
+    if (unknown) unknown->QueryInterface(winrt::guid_of<FrameworkElement>(), winrt::put_abi(element));
+    auto root = element ? element.XamlRoot() : nullptr;
+    if (diagnostic) Wh_Log(L"[Mawaqit][Monitor][Probe] stage=secondary-XamlRoot status=%s", root ? L"ok" : L"null");
+    Ref_count_base_Decref_Original(host[1]);
+    return root;
 }
 
 } // namespace folder_menus_taskbar_xaml
@@ -1667,6 +1816,7 @@ static int g_width = 200, g_pillHeight = 0, g_trayGap = 5, g_cornerRadius = 13, 
 static Insets g_margins{}, g_padding{};
 static std::wstring g_theme = L"system";
 static std::wstring g_position = L"before-tray";
+static bool g_showPrimaryMonitor = true, g_showSecondaryMonitors = true;
 struct PillPalette
 {
     winrt::Windows::UI::Color background, foreground, countdown, separator;
@@ -1985,7 +2135,7 @@ static void DestroyPrayerPopup()
             g_popupClassRegistered = false;
     }
 }
-[[maybe_unused]] static void TogglePrayerPopup()
+[[maybe_unused]] static void TogglePrayerPopup(Grid const& anchorPill, HWND anchorTaskbar)
 {
 
     if (!g_enablePopup)
@@ -2057,7 +2207,7 @@ static void DestroyPrayerPopup()
 
     UpdateCountdown();
 
-    HWND taskbar = taskwin::FindCurrentProcessTaskbarWnd();
+    HWND taskbar = anchorTaskbar && IsWindow(anchorTaskbar) ? anchorTaskbar : taskwin::FindCurrentProcessTaskbarWnd();
     RECT bar{};
     if (taskbar)
         GetWindowRect(taskbar, &bar);
@@ -2078,13 +2228,13 @@ static void DestroyPrayerPopup()
     bool top = bar.top <= monitor.top + 10;
     int x = bar.left + (bar.right - bar.left - w) / 2;
     // Center below the XAML pill if possible, otherwise use taskbar center.
-    if (g_pill)
+    if (anchorPill)
     {
         try
         {
-            auto transform = g_pill.TransformToVisual(nullptr);
+            auto transform = anchorPill.TransformToVisual(nullptr);
             auto pt = transform.TransformPoint({0, 0});
-            x = bar.left + (int)std::lround((pt.X + g_pill.ActualWidth() / 2.0) * scale) - w / 2;
+            x = bar.left + (int)std::lround((pt.X + anchorPill.ActualWidth() / 2.0) * scale) - w / 2;
         }
         catch (...)
         {
@@ -2110,7 +2260,8 @@ static void DestroyPrayerPopup()
     int autoClose = g_popupAutoCloseSeconds.load();
     g_popupAutoCloseDeadline =
         autoClose > 0 ? GetTickCount64() + static_cast<ULONGLONG>(autoClose) * 1000 : 0;
-    Wh_Log(L"[Mawaqit] Popup opened: auto-close=%d seconds", autoClose);
+    Wh_Log(L"[Mawaqit][Monitor] Popup opened: taskbar=%p anchor=%s x=%d y=%d auto-close=%d seconds",
+           taskbar, anchorTaskbar ? L"secondary" : L"primary", x, y, autoClose);
 
     InvalidateRect(g_popup, nullptr, FALSE);
 }
@@ -2477,8 +2628,332 @@ static void UpdateAfterIconsOnUiThread()
     }
 }
 
+// Secondary taskbars own independent XAML objects, leases, and event tokens.
+// Never reuse the primary widget's XAML objects, lease, or parent.
+struct SecondaryClockInstance
+{
+    HWND taskbar = nullptr;
+    std::wstring monitor;
+    winrt::weak_ref<Panel> parent;
+    winrt::weak_ref<Grid> pill;
+    winrt::weak_ref<TextBlock> prayer;
+    winrt::weak_ref<TextBlock> countdown;
+    slot::Lease lease{};
+    winrt::event_token tapToken{};
+    bool tapRegistered = false;
+};
+static std::vector<SecondaryClockInstance> g_secondaryClocks;
+static constexpr wchar_t kSecondarySlotName[] = L"MawaqitSecondaryClockSlot";
+static constexpr wchar_t kSecondaryLeaseName[] = L"MawaqitSecondaryClockLease";
+
+static void RemoveSecondaryClocksOnUiThread()
+{
+    for (auto &instance : g_secondaryClocks)
+    {
+        auto pill = instance.pill.get();
+        if (pill && instance.tapRegistered)
+        {
+            try { pill.Tapped(instance.tapToken); } catch (...) {}
+        }
+        auto parent = instance.parent.get();
+        if (parent)
+        {
+            for (int i = (int)parent.Children().Size() - 1; i >= 0; --i)
+            {
+                auto child = parent.Children().GetAt(i).try_as<FrameworkElement>();
+                if (child && child.Name() == kSecondarySlotName)
+                    parent.Children().RemoveAt(i);
+            }
+            if (!instance.lease.markerName.empty())
+                slot::Release(parent, instance.lease);
+        }
+    }
+    g_secondaryClocks.clear();
+}
+
+// Read-only HWND hierarchy diagnostics. Never interpret window memory as XAML.
+// EnumChildWindows visits descendants, and is limited to avoid excessive logs.
+static void ProbeSecondaryWindowHierarchy(HWND taskbar)
+{
+    if (!IsWindow(taskbar)) return;
+    struct Context { HWND taskbar; unsigned count; } ctx{taskbar, 0};
+    wchar_t className[128]{};
+    GetClassNameW(taskbar, className, ARRAYSIZE(className));
+    Wh_Log(L"[Mawaqit][Monitor][HWND] root=%p class=%s TaskbandHWND=%p",
+           taskbar, className, GetPropW(taskbar, L"TaskbandHWND"));
+    EnumChildWindows(taskbar, [](HWND hwnd, LPARAM param) -> BOOL {
+        auto &ctx = *reinterpret_cast<Context *>(param);
+        if (++ctx.count > 64) return FALSE;
+        wchar_t cls[128]{};
+        GetClassNameW(hwnd, cls, ARRAYSIZE(cls));
+        RECT rect{};
+        GetWindowRect(hwnd, &rect);
+        HWND parent = GetParent(hwnd);
+        Wh_Log(L"[Mawaqit][Monitor][HWND] child=%p parent=%p class=%s visible=%d rect=(%ld,%ld,%ld,%ld) taskband=%p",
+               hwnd, parent, cls, IsWindowVisible(hwnd) ? 1 : 0,
+               rect.left, rect.top, rect.right, rect.bottom,
+               GetPropW(hwnd, L"TaskbandHWND"));
+        return TRUE;
+    }, reinterpret_cast<LPARAM>(&ctx));
+    Wh_Log(L"[Mawaqit][Monitor][HWND] descendants-logged=%u%s",
+           ctx.count > 64 ? 64 : ctx.count, ctx.count > 64 ? L" (limit reached)" : L"");
+}
+
+static void EnsureSecondaryClocksOnUiThread()
+{
+    if (g_stopping.load() || !g_showSecondaryMonitors) return;
+    for (auto const &record : mawaqit_monitor_discovery::EnumerateTaskbars())
+    {
+        if (record.primaryTaskbar || !IsWindow(record.hwnd)) continue;
+        bool existing = false;
+        for (auto const &instance : g_secondaryClocks)
+            if (instance.taskbar == record.hwnd && instance.pill.get()) { existing = true; break; }
+        if (existing) continue;
+        // This is intentionally a compatibility probe: on some Windows builds
+        // the secondary tray does not expose the primary TaskbandHWND contract.
+        static unsigned probeAttempts = 0;
+        ++probeAttempts;
+        const bool diagnostic = probeAttempts <= 3 || probeAttempts % 60 == 0;
+        if (diagnostic)
+            Wh_Log(L"[Mawaqit][Monitor][Probe] begin monitor=%s taskbar=%p attempt=%u",
+                   record.device.c_str(), record.hwnd, probeAttempts);
+        if (probeAttempts == 1) ProbeSecondaryWindowHierarchy(record.hwnd);
+        auto xamlRoot = taskxaml::GetSecondaryTaskbarXamlRoot(record.hwnd, diagnostic);
+        auto root = xamlRoot ? xamlRoot.Content().try_as<FrameworkElement>() : nullptr;
+        if (diagnostic)
+            Wh_Log(L"[Mawaqit][Monitor][Probe] stage=root-content status=%s", root ? L"ok" : L"null");
+        auto trayElement = root ? FindNamed(root, L"SystemTrayFrameGrid") : nullptr;
+        auto parent = trayElement ? trayElement.try_as<Panel>() : nullptr;
+        if (diagnostic)
+            Wh_Log(L"[Mawaqit][Monitor][Probe] stage=SystemTrayFrameGrid status=%s panel=%d",
+                   trayElement ? L"found" : L"missing", parent ? 1 : 0);
+        auto kind = parent ? slot::Classify(parent) : slot::Kind::Unsupported;
+        if (!parent || kind == slot::Kind::Unsupported)
+        {
+            if (diagnostic)
+                Wh_Log(L"[Mawaqit][Monitor][Probe] result=unavailable monitor=%s taskbar=%p",
+                       record.device.c_str(), record.hwnd);
+            continue;
+        }
+        // Before-icons requires a real layout lease in the secondary icon
+        // repeater's parent; overlays cannot make room to its left.
+        bool overlay = g_position == L"center" || g_position == L"after-icons";
+        int index = -1;
+        if (g_position == L"before-icons")
+        {
+            Panel iconsParent{nullptr};
+            FrameworkElement repeater{nullptr};
+            if (!root || !FindApplicationRepeater(root, iconsParent, repeater) ||
+                !iconsParent || !repeater || iconsParent.ActualWidth() <= 0 ||
+                repeater.ActualWidth() <= 0 || repeater.ActualHeight() <= 0)
+            {
+                Wh_Log(L"[Mawaqit][Monitor][BeforeIcons] waiting for secondary icon repeater on %s",
+                       record.device.c_str());
+                continue;
+            }
+            auto iconKind = slot::Classify(iconsParent);
+            if (iconKind == slot::Kind::Columns)
+                index = Grid::GetColumn(repeater);
+            else if (iconKind == slot::Kind::Order)
+                index = slot::IndexOfChild(iconsParent, repeater);
+            if (index < 0)
+            {
+                Wh_Log(L"[Mawaqit][Monitor][BeforeIcons] no supported icon slot on %s",
+                       record.device.c_str());
+                continue;
+            }
+            parent = iconsParent;
+            Wh_Log(L"[Mawaqit][Monitor][BeforeIcons] monitor=%s parent=%s slot=%d repeaterW=%.1f children=%s",
+                   record.device.c_str(), slot::ClassName(parent).c_str(), index,
+                   repeater.ActualWidth(), slot::DescribeChildren(parent).c_str());
+        }
+        else if (overlay)
+        {
+            auto rootGrid = root.try_as<Grid>();
+            RECT bar{};
+            double expectedWidth = 0;
+            if (GetWindowRect(record.hwnd, &bar))
+                expectedWidth = (bar.right - bar.left) * 96.0 /
+                                std::max(96u, GetDpiForWindow(record.hwnd));
+            if (!rootGrid || expectedWidth <= 0 ||
+                rootGrid.ActualWidth() < expectedWidth * 0.75)
+            {
+                Wh_Log(L"[Mawaqit][Monitor] Overlay awaiting full-width secondary root: %s",
+                       record.device.c_str());
+                continue;
+            }
+            parent = rootGrid;
+        }
+        else
+        {
+            slot::Anchor anchor = g_position == L"after-tray"
+                                      ? slot::Anchor::AfterShowDesktop
+                                      : slot::Anchor::BeforeIcons;
+            if (!slot::ResolveSlot(parent, anchor, index))
+            {
+                Wh_Log(L"[Mawaqit][Monitor] Anchor %s unavailable on %s; using before-icons",
+                       g_position.c_str(), record.device.c_str());
+                anchor = slot::Anchor::BeforeIcons;
+                if (!slot::ResolveSlot(parent, anchor, index)) continue;
+            }
+        }
+        Wh_Log(L"[Mawaqit][Monitor] Secondary position: monitor=%s requested=%s mode=%s slot=%d",
+               record.device.c_str(), g_position.c_str(), overlay ? L"overlay" : L"lease", index);
+        SecondaryClockInstance instance{};
+        instance.taskbar = record.hwnd;
+        instance.monitor = record.device;
+        if (!overlay && !slot::AcquireAt(parent, index, kSecondaryLeaseName, instance.lease)) continue;
+        try
+        {
+            Grid box;
+            box.Name(kSecondarySlotName);
+            box.Width((double)g_width + g_trayGap);
+            box.Height(g_pillHeight > 0 ? (double)g_pillHeight : 30.0);
+            box.VerticalAlignment(VerticalAlignment::Center);
+            Border surface;
+            auto palette = ResolvePillPalette(g_theme);
+            SolidColorBrush bg; bg.Color(palette.background);
+            surface.Background(bg);
+            double r = (double)g_cornerRadius;
+            surface.CornerRadius({r,r,r,r});
+            surface.Margin({0,0,(double)g_trayGap,0});
+            surface.Padding({(double)g_padding.left,(double)g_padding.top,
+                             (double)g_padding.right,(double)g_padding.bottom});
+            StackPanel content;
+            content.Orientation(Orientation::Horizontal);
+            content.HorizontalAlignment(HorizontalAlignment::Center);
+            content.VerticalAlignment(VerticalAlignment::Center);
+            TextBlock prayer;
+            prayer.FontSize((double)g_fontSize);
+            prayer.Margin({5,0,4,0});
+            prayer.VerticalAlignment(VerticalAlignment::Center);
+            SolidColorBrush fg; fg.Color(palette.foreground);
+            prayer.Foreground(fg);
+            TextBlock countdown;
+            countdown.FontSize((double)g_fontSize);
+            countdown.Margin({4,0,5,0});
+            countdown.VerticalAlignment(VerticalAlignment::Center);
+            SolidColorBrush accent; accent.Color(palette.countdown);
+            countdown.Foreground(accent);
+            content.Children().Append(prayer);
+            if (g_theme == L"custom")
+            {
+                TextBlock separator;
+                separator.Text(L"|"); separator.FontSize((double)g_fontSize);
+                SolidColorBrush separatorBrush; separatorBrush.Color(palette.separator);
+                separator.Foreground(separatorBrush);
+                content.Children().Append(separator);
+            }
+            content.Children().Append(countdown);
+            surface.Child(content);
+            box.Children().Append(surface);
+            if (overlay)
+            {
+                auto grid = parent.try_as<Grid>();
+                Grid::SetColumn(box, 0);
+                Grid::SetColumnSpan(box, std::max(1, (int)grid.ColumnDefinitions().Size()));
+                Grid::SetRow(box, 0);
+                Grid::SetRowSpan(box, std::max(1, (int)grid.RowDefinitions().Size()));
+                box.HorizontalAlignment(HorizontalAlignment::Center);
+                Canvas::SetZIndex(box, 100);
+                grid.Children().Append(box);
+            }
+            else if (!slot::PlaceChild(parent, instance.lease, box))
+            {
+                slot::Release(parent, instance.lease);
+                continue;
+            }
+            // The popup is still shared; anchor refinement follows after the
+            // secondary rendering contract is verified on a real machine.
+            instance.tapToken = box.Tapped([box, secondaryTaskbar = record.hwnd](auto const &, auto const &) { TogglePrayerPopup(box, secondaryTaskbar); });
+            instance.tapRegistered = true;
+            instance.parent = parent;
+            instance.pill = box;
+            instance.prayer = prayer;
+            instance.countdown = countdown;
+            prayer.Text(g_showNext ? g_label : L"");
+            countdown.Text(g_showCountdown ? g_countdown : L"");
+            g_secondaryClocks.push_back(std::move(instance));
+            Wh_Log(L"[Mawaqit][Monitor] Secondary clock inserted on %s hwnd=%p",
+                   record.device.c_str(), record.hwnd);
+        }
+        catch (...)
+        {
+            for (int i = (int)parent.Children().Size() - 1; i >= 0; --i)
+            {
+                auto child = parent.Children().GetAt(i).try_as<FrameworkElement>();
+                if (child && child.Name() == kSecondarySlotName)
+                    parent.Children().RemoveAt(i);
+            }
+            slot::Release(parent, instance.lease);
+            Wh_Log(L"[Mawaqit][Monitor] Secondary insertion failed on %s", record.device.c_str());
+        }
+    }
+}
+
+static void UpdateSecondaryClocksOnUiThread()
+{
+    EnsureSecondaryClocksOnUiThread();
+    for (auto &instance : g_secondaryClocks)
+    {
+        if (auto prayer = instance.prayer.get())
+            prayer.Text(g_showNext ? g_label : L"");
+        if (auto countdown = instance.countdown.get())
+            countdown.Text(g_showCountdown ? g_countdown : L"");
+        if ((g_position == L"center" || g_position == L"after-icons") && instance.pill.get())
+        {
+            try
+            {
+                auto pill = instance.pill.get();
+                auto grid = instance.parent.get().try_as<Grid>();
+                if (!grid || grid.ActualWidth() <= 0) continue;
+                double width = pill.ActualWidth() > 0 ? pill.ActualWidth() : pill.Width();
+                double centered = (grid.ActualWidth() - width) / 2.0;
+                double desired = centered;
+                auto tray = FindNamed(grid, L"SystemTrayFrameGrid");
+                double trayLeft = grid.ActualWidth();
+                if (tray) trayLeft = tray.TransformToVisual(grid).TransformPoint({0,0}).X;
+                Panel iconsParent{nullptr};
+                FrameworkElement repeater{nullptr};
+                double appRight = 0;
+                bool measured = false;
+                if (FindApplicationRepeater(grid, iconsParent, repeater) && repeater)
+                {
+                    appRight = repeater.TransformToVisual(grid).TransformPoint({0,0}).X;
+                    int count = VisualTreeHelper::GetChildrenCount(repeater);
+                    for (int i = 0; i < count; ++i)
+                    {
+                        auto child = VisualTreeHelper::GetChild(repeater, i).try_as<FrameworkElement>();
+                        if (!child || child.Visibility() != Visibility::Visible ||
+                            child.ActualWidth() <= 0 || child.ActualWidth() > 400) continue;
+                        auto p = child.TransformToVisual(grid).TransformPoint({0,0});
+                        if (std::isfinite(p.X) && p.X >= 0 &&
+                            p.X + child.ActualWidth() <= grid.ActualWidth() + 1)
+                        {
+                            appRight = std::max(appRight, p.X + child.ActualWidth());
+                            measured = true;
+                        }
+                    }
+                }
+                desired = g_position == L"after-icons" ? appRight + 5.0
+                         : std::max(centered, appRight + 5.0);
+                bool room = measured && desired + width + 5.0 <= trayLeft;
+                pill.Visibility(room ? Visibility::Visible : Visibility::Collapsed);
+                if (room)
+                {
+                    auto translation = pill.RenderTransform().try_as<TranslateTransform>();
+                    if (!translation) { translation = TranslateTransform(); pill.RenderTransform(translation); }
+                    translation.X(desired - centered);
+                }
+            }
+            catch (...) { Wh_Log(L"[Mawaqit][Monitor] Secondary overlay layout retry"); }
+        }
+    }
+}
+
 static void RemoveOnUiThread()
 {
+    RemoveSecondaryClocksOnUiThread();
     g_centerDiagnosticCount = 0;
     g_afterIconsDiagnosticCount = 0;
     DestroyPrayerPopup();
@@ -2522,6 +2997,12 @@ static void InsertOnUiThread()
 {
     if (g_stopping.load())
         return;
+    if (!g_showPrimaryMonitor)
+    {
+        Wh_Log(L"[Mawaqit][Monitor] Primary clock disabled by settings");
+        UpdateSecondaryClocksOnUiThread();
+        return;
+    }
     int slotIndex = -1;
     auto parent = ResolvePositionParent(slotIndex);
     if (!parent)
@@ -2652,7 +3133,7 @@ static void InsertOnUiThread()
     }
     g_placeholder = box;
     g_pill = box;
-    g_tapToken = box.Tapped([](auto const &, auto const &) { TogglePrayerPopup(); });
+    g_tapToken = box.Tapped([](auto const &, auto const &) { TogglePrayerPopup(g_pill, nullptr); });
     g_tapRegistered = true;
     g_prayerText = prayer;
     g_countdownText = countdown;
@@ -2676,6 +3157,7 @@ static void InsertOnUiThread()
     UpdateDynamicCenterOnUiThread();
     UpdateAfterIconsOnUiThread();
     UpdateCountdown();
+    UpdateSecondaryClocksOnUiThread();
     prayer.Text(g_showNext ? g_label : L"");
     countdown.Text(g_showCountdown ? g_countdown : L"");
     Wh_Log(L"[Mawaqit] Native XAML position %s inserted: %d physical px, %.1f DIP, DPI %.0f",
@@ -2708,6 +3190,7 @@ static bool OnTaskbarThread(folder_menus_dispatch::ThreadProc proc)
 
 static DWORD WINAPI StartWorker(void *)
 {
+    mawaqit_monitor_discovery::LogInventory();
     // Explorer may create the taskbar's XAML tree after Windhawk initialization.
     for (int i = 0; i < 40 && !g_stopping.load(); ++i)
     {
@@ -2745,8 +3228,9 @@ static void EnsureTaskbarSlotOnUiThread()
             break;
         }
     }
-    if (present)
+    if (present && g_showPrimaryMonitor)
     {
+        UpdateSecondaryClocksOnUiThread();
         g_taskbarRebuildPending.store(false, std::memory_order_release);
         return;
     }
@@ -2810,6 +3294,7 @@ static void UpdateClockOnUiThread()
         countdown.Text(g_showCountdown ? g_countdown : L"");
     UpdateDynamicCenterOnUiThread();
     UpdateAfterIconsOnUiThread();
+    UpdateSecondaryClocksOnUiThread();
 }
 
 // XAML DispatcherTimer did not tick in the taskbar's hosting context on the
@@ -3010,6 +3495,11 @@ static void LoadModSettings()
         position != L"center")
         position = L"before-tray";
     g_position = position;
+    g_showPrimaryMonitor = Wh_GetIntSetting(L"General.ShowPrimaryMonitor") != 0;
+    g_showSecondaryMonitors = Wh_GetIntSetting(L"General.ShowSecondaryMonitors") != 0;
+    Wh_Log(L"[Mawaqit][Monitor] Visibility: primary=%d secondary=%d unified-position=%s",
+           g_showPrimaryMonitor ? 1 : 0, g_showSecondaryMonitors ? 1 : 0,
+           g_position.c_str());
     auto theme = ReadSetting(L"General.Theme");
     if (theme != L"traditional" && theme != L"catppuccin" && theme != L"emberveil" &&
         theme != L"emberveil-midnight" && theme != L"emerald-mosque" && theme != L"dracula" &&

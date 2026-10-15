@@ -5,7 +5,7 @@ Windhawk provides two editors for this mod:
 - **Settings:** Mosque, appearance preset, taskbar position, display toggles, and popup auto-close.
 - **Advanced → Mod settings:** The complete JSON settings object, including every color and layout key.
 
-The current v0.6.9 build exposes the layout, refresh, and custom-theme groups in Settings. Their keys can also be edited in Advanced JSON.
+The current v0.7.0-rc.1 build exposes the layout, refresh, and custom-theme groups in Settings. Their keys can also be edited in Advanced JSON.
 
 ## Editing advanced values
 
@@ -23,6 +23,8 @@ The **Advanced** tab is part of Windhawk; no external configuration file is requ
   "General.Mosque": "al-haram-makkah-saudi-arabia",
   "General.Theme": "catppuccin",
   "General.Position": "before-tray",
+  "General.ShowPrimaryMonitor": 1,
+  "General.ShowSecondaryMonitors": 1,
   "Display.ShowNextPrayer": 1,
   "Display.ShowCountdown": 1,
   "Display.EnablePopup": 1,
@@ -55,6 +57,8 @@ This is a **sample configuration**, not the mod's built-in defaults. The setting
 | Setting | Purpose | Valid values / behavior |
 |---|---|---|
 | `Mosque` | Mawaqit mosque identifier or URL | String |
+| `ShowPrimaryMonitor` | Show clock on the primary taskbar | 0 or 1; default 1 |
+| `ShowSecondaryMonitors` | Show clocks on secondary taskbars | 0 or 1; default 1 |
 | `Position` (**Taskbar position**) | Where the clock appears | `before-tray` (default), `after-tray`, `before-icons`, `after-icons`, `center` (experimental) |
 | `RefreshHours` | Schedule refresh interval | 1–168 hours; default 24 |
 | `Theme` | Built-in theme or custom palette | `system`, `traditional`, `catppuccin`, `emberveil`, `emberveil-midnight`, `emerald-mosque`, `dracula`, `nord`, `gruvbox`, `tokyo-night`, `solarized-dark`, `solarized-light`, `custom` |
@@ -82,7 +86,7 @@ This is a **sample configuration**, not the mod's built-in defaults. The setting
 
 ## Taskbar position
 
-The **Taskbar position** dropdown is available under **General**; advanced customization does not need to be enabled. Positions can be changed live without restarting Explorer.
+The **Taskbar position** dropdown is available under **General**; advanced customization does not need to be enabled. Positions can be changed live without restarting Explorer and apply to enabled primary and secondary monitors. On narrow or crowded taskbars, some positions may not have enough space.
 
 | Position | Setting value | Behavior |
 |---|---|---|
