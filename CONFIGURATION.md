@@ -2,10 +2,10 @@
 
 Windhawk provides two editors for this mod:
 
-- **Settings:** Mosque, appearance preset, taskbar position, display toggles, and popup auto-close.
+- **Settings:** Mosque, appearance preset, taskbar position, display toggles, hover-popup behavior, and popup auto-close.
 - **Advanced → Mod settings:** The complete JSON settings object, including every color and layout key.
 
-The current v0.7.0-rc.1 build exposes the layout, refresh, and custom-theme groups in Settings. Their keys can also be edited in Advanced JSON.
+The current v0.7.0 build exposes the layout, refresh, and custom-theme groups in Settings. Their keys can also be edited in Advanced JSON.
 
 ## Editing advanced values
 
@@ -28,6 +28,8 @@ The **Advanced** tab is part of Windhawk; no external configuration file is requ
   "Display.ShowNextPrayer": 1,
   "Display.ShowCountdown": 1,
   "Display.EnablePopup": 1,
+  "Display.OpenPopupOnHover": 0,
+  "Display.HoverCloseDelayMs": 500,
   "Display.PopupAutoCloseSeconds": 0,
   "AdvancedCustomization.ModSettingsAdvanced.RefreshHours": 24,
   "AdvancedCustomization.LayoutSettings.Width": 220,
@@ -64,7 +66,9 @@ This is a **sample configuration**, not the mod's built-in defaults. The setting
 | `Theme` | Built-in theme or custom palette | `system`, `traditional`, `catppuccin`, `emberveil`, `emberveil-midnight`, `emerald-mosque`, `dracula`, `nord`, `gruvbox`, `tokyo-night`, `solarized-dark`, `solarized-light`, `custom` |
 | `ShowNextPrayer` | Prayer label and time | 0 or 1 |
 | `ShowCountdown` | Live countdown | 0 or 1 |
-| `EnablePopup` | Clickable prayer schedule | 0 or 1 |
+| `EnablePopup` | Prayer schedule popup | 0 or 1 |
+| `OpenPopupOnHover` | Open popup when hovering over the clock | 0 or 1; default 0 |
+| `HoverCloseDelayMs` | Delay after cursor leaves clock and popup | 0–5000 ms; default 500 |
 | `PopupAutoCloseSeconds` | Dismiss popup automatically | 0 = disabled; 1–300 seconds; default 5 |
 | `CustomPillBackground` | Pill background | `#RRGGBB` |
 | `CustomPillText` | Prayer label | `#RRGGBB` |
@@ -112,6 +116,10 @@ Margin affects **position only**; padding affects the **text area only**. Neithe
 **Custom theme:** To use custom colors, set `"General.Theme": "custom"` in Advanced JSON. Selecting a built-in preset ignores the custom color values without deleting them. **Custom** is available in the regular appearance dropdown.
 
 **Compatibility:** Tested on the author’s Windows 11 setup. Native XAML taskbar layouts can vary across Windows builds and taskbar modifications.
+
+## Popup behavior
+
+Enable **Open popup when hovering over clock** to open the prayer schedule without clicking. The hover close delay controls how long the pointer may remain outside both the clock and popup before the popup closes. **Popup auto-close** is a separate timer; set it to `0` to disable automatic time-based dismissal.
 
 ## Schedule cache and refresh behavior (v0.6.9)
 

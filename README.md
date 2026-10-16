@@ -3,13 +3,13 @@ An unofficial, customizable **Mawaqit prayer clock for the Windows 11 taskbar**,
 
 Displays the upcoming prayer and a live countdown in a taskbar pill, with a clickable prayer-schedule popup. Designed with the **Emberveil** visual style in mind.
 
-> **Version: v0.7.0-rc.1 (release candidate).** Tested by the project author in their Windows setup; broader compatibility has not yet been established.
+> **Version: v0.7.0 (release candidate).** Tested by the project author in their Windows setup; broader compatibility has not yet been established.
 
 > **Windhawk 2.0 or newer is recommended.** Earlier versions may differ in how advanced settings are presented.
 
 ## Features
 - Upcoming prayer name, scheduled time, and live countdown
-- Clickable prayer-schedule popup with optional auto-close timer
+- Clickable or hover-opened prayer-schedule popup, with configurable mouse-leave delay and optional auto-close timer
 - 13 appearance themes: **Windows / System**, **Traditional Islamic**, **Catppuccin Mocha**, **Emberveil**, **Emberveil Midnight**, **Emerald Mosque**, **Dracula**, **Nord**, **Gruvbox Dark**, **Tokyo Night**, **Solarized Dark**, **Solarized Light**, and **Custom**
 - Independent custom colors for the pill and popup
 - Visibility switches for the prayer label, countdown, and popup
@@ -60,7 +60,7 @@ Settings are organized into the following groups:
 | Group | Options |
 | --- | --- |
 | General | Mosque ID or URL; appearance theme; taskbar position; primary/secondary monitor visibility |
-| Display | Show next prayer; show countdown; enable prayer popup; popup auto-close (0–300 seconds) |
+| Display | Show next prayer; show countdown; enable prayer popup; open on hover; hover close delay (0–5000 ms); popup auto-close (0–300 seconds) |
 | Mod settings (advanced) | Schedule refresh interval |
 | Layout settings (advanced) | Width; Height; Margin (left, top, right, bottom); Padding (left, top, right, bottom); Gap before system tray; Corner radius; Fontsize |
 | Custom theme settings (advanced) | Pill and popup color controls |
@@ -71,10 +71,12 @@ Custom color settings only affect the widget when **Custom** is selected. All th
 
 For a mosque, enter a slug such as `al-haram-makkah-saudi-arabia` or a URL such as `https://mawaqit.net/en/al-haram-makkah-saudi-arabia`. The source defaults to `al-haram-makkah-saudi-arabia`; change it to your own mosque.
 
-## What changed in v0.7.0-rc.1
+## What changed in v0.7.0
 - Added independent primary and secondary taskbar clocks with visibility toggles.
 - Unified five taskbar positions across displays.
 - Added monitor-aware popup placement and taskbar recovery after monitor changes.
+- Hardened XAML event cleanup, popup teardown, UI-thread dispatch, worker shutdown, and stale taskbar recovery.
+- Added bounded Explorer startup recovery (up to approximately 60 seconds) when taskbar windows appear after mod initialization.
 - Passed 26 author-run regression checks, including themes, prayer rollover, offline behavior, Explorer restart, and monitor reconnection.
 - Known limitation: crowded or narrow portrait taskbars may lack room to display the clock at a chosen position; changing position can help.
 
@@ -97,7 +99,7 @@ A valid, fresh cache is reused after Explorer restarts. The default refresh inte
 
 ## Troubleshooting
 - **No prayer times:** Verify the mosque identifier/URL and internet access to `mawaqit.net`.
-- **Widget missing:** Confirm the mod is enabled and Windows Explorer's taskbar/system tray is present; the native XAML slot may not appear if the taskbar tray is unavailable or unsupported.
+- **Widget missing:** Confirm the mod is enabled and Windows Explorer's taskbar/system tray is present; the native XAML slot may not appear if the taskbar tray is unavailable or unsupported. After Explorer starts, taskbar detection and insertion are retried for approximately 60 seconds.
 - **Theme colors not changing:** Select **Custom** to use custom pill and popup colors.
 - **Unexpected schedule:** Verify the mosque page and the local Windows date/time. The current updater uses the local Windows date when building the schedule.
 

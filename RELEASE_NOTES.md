@@ -1,4 +1,4 @@
-# Mawaqit Prayer Clock v0.7.0-rc.1
+# Mawaqit Prayer Clock v0.7.0
 
 **Multi-monitor release candidate — author-tested**
 
@@ -9,6 +9,9 @@ This release candidate adds a prayer clock to secondary Windows 11 taskbars, wit
 - Unified positions: before tray, after tray, before icons, after icons, and experimental dynamic center.
 - Independent visibility controls for primary and secondary monitors.
 - Monitor-aware popup placement and recovery following display changes and Explorer restart.
+- Hardened event-token cleanup, popup teardown, UI-thread dispatch, worker coordination, and taskbar rebuild detection.
+- Bounded Explorer startup recovery (approximately 60 seconds) for taskbars created after mod initialization.
+- Optional hover-open popup with configurable mouse-leave delay.
 - All 26 author-run functional regression checks passed, including theme changes, offline schedule use, prayer rollover, monitor reconnect, and repeated enable/disable.
 
 ### Known limitations
@@ -21,7 +24,7 @@ This release candidate adds a prayer clock to secondary Windows 11 taskbars, wit
 Use `src/windhawk-mawaqit.wh.cpp` in Windhawk's mod editor, compile, enable, and configure the mosque identifier. Existing setting keys are retained; the new `General.ShowPrimaryMonitor` and `General.ShowSecondaryMonitors` switches default to enabled. This is a source release; no precompiled binary is provided.
 
 ### Status
-Release candidate for review, not a final v0.7.0 release. The source has not been independently compiled in this review environment. Upstream Windhawk acceptance remains subject to maintainer review.
+Release candidate for review, not a final v0.7.0 release. The author reports successful compilation and functional testing of the formatted `dev.7f.1` baseline, including Explorer restart recovery. Packaging changed only the Windhawk `@version` metadata in C++; this RC-specific metadata edit has not been independently compiled in this environment. Upstream Windhawk acceptance remains subject to maintainer review.
 
 ---
 

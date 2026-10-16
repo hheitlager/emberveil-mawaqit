@@ -1,7 +1,7 @@
 # Changelog
 Notable changes to Mawaqit Prayer Clock are documented here.
 
-## [0.7.0-rc.1] — Multi-monitor release candidate
+## [0.7.0] — Multi-monitor release candidate
 
 ### Added
 - Independent clock visibility for primary and secondary Windows 11 taskbars.
@@ -12,6 +12,10 @@ Notable changes to Mawaqit Prayer Clock are documented here.
 - Secondary before-icons placement reserves a native XAML layout slot.
 - Taskbar recovery following monitor reconnects, primary-display changes, and Explorer restarts.
 - Reduced repetitive secondary layout diagnostic logging.
+- Hardened XAML event-token cleanup, popup lifecycle and fallback, UI-thread dispatch, schedule-worker synchronization, and shutdown.
+- Validated taskbar attachment before reuse and rebuilt stale primary/secondary clock placements.
+- Added a bounded Explorer startup retry window (approximately 60 seconds) so late-created taskbar windows do not permanently prevent clock initialization.
+- Formatted the source consistently as UTF-8 without BOM; no functional C++ changes were made during release packaging.
 
 ### Validation and limitations
 - All 26 author-run functional regression checks passed on the tested dual-monitor setup.
