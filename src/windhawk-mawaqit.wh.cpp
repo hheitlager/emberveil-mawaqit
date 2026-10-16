@@ -48,12 +48,9 @@ See how Mawaqit Prayer Clock integrates into a fully customized Windows 11 deskt
 
 ## Configuration
 - Choose a mosque identifier or Mawaqit URL in Settings.
-  Search for your nearby mosque via e.g. [Google](https://www.google.com/search?q=mawaqit+mosque+near+me).
-  Accepted inputs include a bare mosque identifier and these URL forms:
-  - `https://mawaqit.net/<language>/<mosque-identifier>`
-  - `https://mawaqit.net/<language>/m/<mosque-identifier>`
-  - `https://admin.mawaqit.net/<language>/<mosque-identifier>`
-  - `https://admin.mawaqit.net/<language>/m/<mosque-identifier>`
+  Search for your nearby mosque via e.g. [Google](https://www.google.com/search?q=mawaqit+mosque+near+me). 
+  Accepted inputs include a bare mosque identifier and the full URL:
+  - `![UrlExample](https://raw.githubusercontent.com/hheitlager/windhawk-mawaqit/main/screenshots/Mawaqit-Mosque-Identifier.png)`
 - Select an appearance theme and customize the widget as desired.
 - Custom color settings only apply when the Custom theme is selected.
 - Set popup auto-close to 0 to keep the popup open until dismissed.
